@@ -1,0 +1,144 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
+
+class ProjectController extends Controller
+{
+    /**
+     * Affiche la liste des projets de l'utilisateur connecté.
+     */
+    public function index(): View
+    {
+        $projects = $this->currentUser()->projects()->orderBy('created_at', 'desc')->get();
+        return view('projects.index', compact('projects'));
+    }
+
+    /**
+     * Affiche le formulaire de création.
+     */
+    public function create(): View
+    {
+        return view('projects.create');
+    }
+
+    /**
+     * Valide et crée un projet.
+     */
+    public function store(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|in:preparation,in_progress,completed',
+        ]);
+
+        $project = $this->currentUser()->projects()->create($validated);
+
+        return redirect()->route('projects.show', $project->id)->with('success', 'Projet créé');
+    }
+
+    /**
+     * Affiche les détails du projet + ses tâches.
+     */
+    public function show(string $id): View
+    {
+        // Utilisation de with('tasks') pour charger les tâches associées
+        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
+        return view('projects.show', compact('project'));
+    }
+
+    /**
+     * Affiche le formulaire d'édition.
+     */
+    public function edit(string $id): View
+    {
+        $project = $this->currentUser()->projects()->findOrFail($id);
+        return view('projects.edit', compact('project'));
+    }
+
+    /**
+     * Valide et modifie le projet.
+     */
+    public function update(Request $request, string $id): RedirectResponse
+    {
+        $project = $this->currentUser()->projects()->findOrFail($id);
+
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+            'status' => 'required|in:preparation,in_progress,completed',
+        ]);
+
+        $project->update($validated);
+
+        return redirect()->route('projects.show', $project->id)->with('success', 'Projet modifié');
+    }
+
+    /**
+     * Supprime le projet.
+     */
+    public function destroy(string $id): RedirectResponse
+    {
+        $project = $this->currentUser()->projects()->findOrFail($id);
+        $project->delete();
+
+        return redirect()->route('projects.index')->with('success', 'Projet supprimé');
+    }
+
+    /**
+     * Affiche la vue Kanban du projet.
+     */
+    public function kanban(string $id): View
+    {
+        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
+
+        $tasksByStatus = [
+            'todo' => $project->tasks->where('status', 'todo'),
+            'in_progress' => $project->tasks->where('status', 'in_progress'),
+            'done' => $project->tasks->where('status', 'done'),
+        ];
+
+        return view('projects.kanban', compact('project', 'tasksByStatus'));
+    }
+
+    /**
+     * Affiche la vue Calendrier du projet.
+     */
+    public function calendar(Request $request, string $id): View
+    {
+        $project = $this->currentUser()->projects()->findOrFail($id);
+
+        $date = $request->input('date') ? \Carbon\Carbon::parse($request->input('date')) : \Carbon\Carbon::now();
+        $date->startOfMonth(); // S'assurer d'être au début du mois
+
+        $currentMonth = $date->month;
+        $currentYear = $date->year;
+
+        $tasks = $project->tasks()
+            ->whereNotNull('due_date')
+            ->whereYear('due_date', $currentYear)
+            ->whereMonth('due_date', $currentMonth)
+            ->get();
+
+        return view('projects.calendar', compact('project', 'tasks', 'date', 'currentMonth', 'currentYear'));
+    }
+
+    /**
+     * Helper pour récupérer l'utilisateur connecté avec le bon type pour l'IDE.
+     */
+    private function currentUser(): \App\Models\User
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user;
+    }
+}
