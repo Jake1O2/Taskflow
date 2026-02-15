@@ -12,20 +12,11 @@ use Illuminate\View\View;
 class ProjectController extends Controller
 {
     /**
-     * API: statistiques (projets, tâches, équipes) pour animations.
+     * API: statistiques (projets, tâches, équipes) pour animations (avec cache).
      */
     public function getStats(): JsonResponse
     {
-        $user = Auth::user();
-        $projectsCount = $user->projects()->count();
-        $tasksCount = $user->projects()->with('tasks')->get()->flatMap(fn ($p) => $p->tasks)->count();
-        $teamsCount = $user->teams()->count();
-
-        return response()->json([
-            'projects' => $projectsCount,
-            'tasks' => $tasksCount,
-            'teams' => $teamsCount,
-        ]);
+        return response()->json(Auth::user()->getCachedStats());
     }
 
     /**
@@ -33,7 +24,7 @@ class ProjectController extends Controller
      */
     public function index(): View
     {
-        $projects = Auth::user()->projects()->orderBy('created_at', 'desc')->get();
+        $projects = Auth::user()->projects()->withCount('tasks')->orderBy('created_at', 'desc')->get();
         return view('projects.index', compact('projects'));
     }
 
@@ -59,6 +50,7 @@ class ProjectController extends Controller
         ]);
 
         $project = $this->currentUser()->projects()->create($validated);
+        $this->currentUser()->forgetStatsCache();
 
         return redirect()->route('projects.show', $project->id)->with('success', 'Projet créé');
     }
@@ -79,7 +71,8 @@ class ProjectController extends Controller
     public function edit(string $id): View
     {
         $project = $this->currentUser()->projects()->findOrFail($id);
-        return view('projects.edit', compact('project'));
+        $teams = Auth::user()->teams()->get();
+        return view('projects.edit', compact('project', 'teams'));
     }
 
     /**
@@ -98,6 +91,7 @@ class ProjectController extends Controller
         ]);
 
         $project->update($validated);
+        $this->currentUser()->forgetStatsCache();
 
         return redirect()->route('projects.show', $project->id)->with('success', 'Projet modifié');
     }
@@ -109,6 +103,7 @@ class ProjectController extends Controller
     {
         $project = $this->currentUser()->projects()->findOrFail($id);
         $project->delete();
+        $this->currentUser()->forgetStatsCache();
 
         return redirect()->route('projects.index')->with('success', 'Projet supprimé');
     }

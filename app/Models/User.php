@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Cache;
 
 class User extends Authenticatable
 {
@@ -71,5 +72,38 @@ class User extends Authenticatable
     public function teamMemberships(): BelongsToMany
     {
         return $this->belongsToMany(Team::class, 'team_members')->withTimestamps();
+    }
+
+    /**
+     * Stats (projects, tasks, teams) avec cache pour limiter les requêtes.
+     */
+    public function getCachedStats(int $ttlSeconds = 120): array
+    {
+        return Cache::remember(
+            'taskflow.stats.' . $this->id,
+            $ttlSeconds,
+            fn () => $this->computeStats()
+        );
+    }
+
+    /**
+     * Calcule les stats avec requêtes optimisées (eager loading / withCount).
+     */
+    protected function computeStats(): array
+    {
+        $projects = $this->projects()->withCount('tasks')->get();
+        return [
+            'projects' => $projects->count(),
+            'tasks' => $projects->sum('tasks_count'),
+            'teams' => $this->teams()->count(),
+        ];
+    }
+
+    /**
+     * Invalide le cache des stats (à appeler après create/update/delete).
+     */
+    public function forgetStatsCache(): void
+    {
+        Cache::forget('taskflow.stats.' . $this->id);
     }
 }

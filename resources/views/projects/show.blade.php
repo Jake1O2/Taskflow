@@ -92,7 +92,7 @@
                         <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                             <span class="text-indigo-500">📋</span> Tâches du projet
                         </h3>
-                        <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:from-indigo-700 hover:to-purple-700 shadow-md transform hover:-translate-y-0.5 transition-all duration-200">
+                        <a href="{{ route('tasks.create', ['projectId' => $project->id]) }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:from-indigo-700 hover:to-purple-700 shadow-md transform hover:-translate-y-0.5 transition-all duration-200">
                             + Ajouter une tâche
                         </a>
                     </div>

@@ -40,6 +40,7 @@ class TeamController extends Controller
         ]);
 
         $team = Auth::user()->teams()->create($validated);
+        Auth::user()->forgetStatsCache();
 
         return redirect()->route('teams.show', $team->id)->with('success', 'Équipe créée');
     }
@@ -50,8 +51,8 @@ class TeamController extends Controller
     public function show(string $id): View
     {
         $team = $this->getTeamForUser($id);
-        $team->load('owner');
-        $members = \App\Models\TeamMember::where('team_id', $team->id)->with('user')->get();
+        $team->load(['owner', 'members.user']);
+        $members = $team->members;
 
         return view('teams.show', compact('team', 'members'));
     }
@@ -78,6 +79,7 @@ class TeamController extends Controller
         ]);
 
         $team->update($validated);
+        Auth::user()->forgetStatsCache();
 
         return redirect()->route('teams.show', $team->id)->with('success', 'Équipe modifiée');
     }
@@ -89,6 +91,7 @@ class TeamController extends Controller
     {
         abort_if($team->user_id !== Auth::id(), 403);
         $team->delete();
+        Auth::user()->forgetStatsCache();
 
         return redirect()->route('teams.index')->with('success', 'Équipe supprimée');
     }

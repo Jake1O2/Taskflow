@@ -13,43 +13,31 @@ class DashboardController extends Controller
      */
     public function index(): View
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
 
-        // Récupération des projets de l'utilisateur
-        $projects = $user->projects()->get();
+        // Stats en cache (TTL 120s), requêtes optimisées côté User::computeStats()
+        $stats = $user->getCachedStats();
 
-        // Requête de base pour les tâches appartenant aux projets de l'utilisateur
-        $tasksQuery = Task::whereHas('project', function ($query) use ($user) {
-            $query->where('user_id', $user->id);
-        });
-
-        // Calcul des statistiques
-        $stats = [
-            'projects' => $projects->count(),
-            'tasks' => (clone $tasksQuery)->count(),
-            'teams' => $user->teams()->count() + $user->teamMemberships()->count(),
-        ];
-
-        // 5 derniers projets
+        // 5 derniers projets (une requête)
         $recentProjects = $user->projects()
             ->orderBy('updated_at', 'desc')
-            ->take(5)
+            ->limit(5)
             ->get();
 
-        // 5 tâches récentes
-        $recentTasks = (clone $tasksQuery)
-            ->orderBy('created_at', 'desc')
+        // 5 tâches récentes avec projet en eager loading (évite N+1)
+        $recentTasks = Task::whereHas('project', function ($query) use ($user) {
+            $query->where('created_by', $user->id); // clé projet = created_by (User model)
+        })
             ->with('project')
-            ->take(5)
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
             ->get();
 
-        // Timestamps pour animations au chargement
         $animationTimestamps = [
             'loadedAt' => now()->toIso8601String(),
             'loadedAtUnix' => now()->timestamp,
         ];
 
-        return view('dashboard', compact('projects', 'stats', 'recentProjects', 'recentTasks', 'animationTimestamps'));
+        return view('dashboard', compact('stats', 'recentProjects', 'recentTasks', 'animationTimestamps'));
     }
 }

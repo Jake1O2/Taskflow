@@ -36,6 +36,7 @@ class TaskController extends Controller
         ]);
 
         $project->tasks()->create($validated);
+        $this->currentUser()->forgetStatsCache();
 
         return redirect()->route('projects.show', $projectId)->with('success', 'Tâche créée');
     }
@@ -74,6 +75,7 @@ class TaskController extends Controller
         ]);
 
         $task->update($validated);
+        $this->currentUser()->forgetStatsCache();
 
         return redirect()->route('projects.show', $task->project_id)->with('success', 'Tâche modifiée');
     }
@@ -86,6 +88,7 @@ class TaskController extends Controller
         $task = $this->getTaskForUser($id);
         $projectId = $task->project_id;
         $task->delete();
+        $this->currentUser()->forgetStatsCache();
 
         return redirect()->route('projects.show', $projectId)->with('success', 'Tâche supprimée');
     }
@@ -135,6 +138,7 @@ class TaskController extends Controller
         $task = $this->getTaskForUser($id);
         $validated = $request->validate(['status' => 'required|in:todo,in_progress,done']);
         $task->update($validated);
+        $this->currentUser()->forgetStatsCache();
         $task->load('project');
         return response()->json($task);
     }
