@@ -7,7 +7,9 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 // Routes publiques
 Route::get('/', function () {
@@ -26,6 +28,29 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class , 'logout'])->name('logout');
     Route::get('/profile', [ProfileController::class , 'show'])->name('profile');
     Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
+
+    // Route de recherche globale
+    Route::get('/search', function (Request $request) {
+        $q = $request->input('q');
+        $projects = collect();
+        $tasks = collect();
+        
+        if ($q) {
+            $userProjects = Auth::user()->projects()->where('title', 'like', "%$q%")->get();
+            $projects = $userProjects;
+            
+            $allProjects = Auth::user()->projects()->with('tasks')->get();
+            foreach ($allProjects as $project) {
+                foreach ($project->tasks as $task) {
+                    if (stripos($task->title, $q) !== false) {
+                        $tasks->push($task);
+                    }
+                }
+            }
+        }
+        
+        return view('search', compact('projects', 'tasks', 'q'));
+    })->name('search');
 
     // Routes pour les projets
     Route::get('/projects', [ProjectController::class , 'index'])->name('projects.index');

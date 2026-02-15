@@ -45,12 +45,14 @@ class TeamController extends Controller
     }
 
     /**
-     * Affiche les détails de l'équipe + ses membres.
+     * Affiche l'équipe et ses membres.
      */
-    public function show(Team $team): View
+    public function show(string $id): View
     {
-        abort_if($team->user_id !== Auth::id(), 403);
-        $members = $team->members()->with('user')->get();
+        $team = $this->getTeamForUser($id);
+        $team->load('owner');
+        $members = \App\Models\TeamMember::where('team_id', $team->id)->with('user')->get();
+
         return view('teams.show', compact('team', 'members'));
     }
 
@@ -97,13 +99,13 @@ class TeamController extends Controller
     public function addMember(Request $request, string $teamId): RedirectResponse
     {
         $team = Auth::user()->teams()->findOrFail($teamId);
-        
+
         $validated = $request->validate([
             'email' => 'required|email|exists:users,email',
         ]);
 
         $user = User::where('email', $validated['email'])->first();
-        
+
         if ($team->members()->where('user_id', $user->id)->exists()) {
             return redirect()->route('teams.show', $teamId)->with('error', 'Cet utilisateur est déjà membre');
         }
@@ -123,10 +125,10 @@ class TeamController extends Controller
     public function removeMember(string $teamId, string $userId): RedirectResponse
     {
         $team = Auth::user()->teams()->findOrFail($teamId);
-        
+
         TeamMember::where('team_id', $teamId)
-                   ->where('user_id', $userId)
-                   ->delete();
+            ->where('user_id', $userId)
+            ->delete();
 
         return redirect()->route('teams.show', $teamId)->with('success', 'Membre retiré');
     }

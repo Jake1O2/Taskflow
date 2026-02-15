@@ -26,13 +26,8 @@ class DashboardController extends Controller
 
         // Calcul des statistiques
         $stats = [
-            'total_projects' => $projects->count(),
-            'total_tasks' => (clone $tasksQuery)->count(),
-            'total_teams' => $user->teams()->count() + $user->teamMemberships()->count(),
             'projects' => $projects->count(),
-            'todo' => (clone $tasksQuery)->where('status', 'todo')->count(),
-            'in_progress' => (clone $tasksQuery)->where('status', 'in_progress')->count(),
-            'completed' => (clone $tasksQuery)->where('status', 'done')->count(),
+            'tasks' => (clone $tasksQuery)->count(),
             'teams' => $user->teams()->count() + $user->teamMemberships()->count(),
         ];
 
@@ -42,22 +37,13 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        // 5 prochaines tâches (non terminées, avec date d'échéance)
-        $upcomingTasks = (clone $tasksQuery)
-            ->where('status', '!=', 'done')
-            ->whereNotNull('due_date')
-            ->orderBy('due_date', 'asc')
-            ->with('project')
-            ->take(5)
-            ->get();
-
-        // 5 tâches récemment modifiées
+        // 5 tâches récentes
         $recentTasks = (clone $tasksQuery)
-            ->orderBy('updated_at', 'desc')
+            ->orderBy('created_at', 'desc')
             ->with('project')
             ->take(5)
             ->get();
 
-        return view('dashboard', compact('projects', 'stats', 'upcomingTasks', 'recentProjects', 'recentTasks'));
+        return view('dashboard', compact('projects', 'stats', 'recentProjects', 'recentTasks'));
     }
 }
