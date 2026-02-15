@@ -7,7 +7,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
-use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 // Routes publiques
@@ -27,7 +26,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class , 'logout'])->name('logout');
     Route::get('/profile', [ProfileController::class , 'show'])->name('profile');
     Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
-    Route::get('/search', [SearchController::class , 'index'])->name('search');
 
     // Routes pour les projets
     Route::get('/projects', [ProjectController::class , 'index'])->name('projects.index');
@@ -39,7 +37,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/projects/{id}', [ProjectController::class , 'show'])->name('projects.show');
     Route::put('/projects/{id}', [ProjectController::class , 'update'])->name('projects.update');
     Route::delete('/projects/{id}', [ProjectController::class , 'destroy'])->name('projects.destroy');
-    Route::get('/search/projects', [ProjectController::class , 'search'])->name('projects.search');
+    Route::get('/search/projects', [ProjectController::class, 'search'])->name('projects.search');
 
     // Routes pour les tâches
     Route::get('/projects/{projectId}/tasks/create', [TaskController::class , 'create'])->name('tasks.create');
@@ -48,8 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/tasks/{id}', [TaskController::class , 'update'])->name('tasks.update');
     Route::get('/tasks/{id}', [TaskController::class , 'show'])->name('tasks.show');
     Route::delete('/tasks/{id}', [TaskController::class , 'destroy'])->name('tasks.destroy');
-    Route::get('/search/tasks', [TaskController::class , 'search'])->name('tasks.search');
-    Route::get('/tasks/filter', [TaskController::class , 'filter'])->name('tasks.filter');
+    Route::get('/search/tasks', [TaskController::class, 'search'])->name('tasks.search');
 
     // Routes pour les commentaires
     Route::post('/tasks/{id}/comments', [CommentController::class , 'store'])->name('comments.store');
@@ -57,6 +54,6 @@ Route::middleware('auth')->group(function () {
 
     // Routes pour les équipes
     Route::resource('teams', TeamController::class);
-    Route::post('/teams/{teamId}/members', [TeamController::class , 'addMember'])->name('teams.addMember');
+    Route::post('/teams/{teamId}/members', [TeamController::class, 'addMember'])->name('teams.addMember');
     Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class , 'removeMember'])->name('teams.removeMember');
 });
