@@ -111,10 +111,18 @@ class ProjectController extends Controller
     /**
      * Affiche la vue Calendrier du projet.
      */
-    public function calendar(string $id): View
+    public function calendar(Request $request, string $id): View
     {
         $project = Auth::user()->projects()->findOrFail($id);
-        return view('projects.calendar', ['project' => $project, 'tasks' => $project->tasks, 'month' => now()->month, 'year' => now()->year]);
+        $date = $request->has('date')
+            ?\Carbon\Carbon::parse($request->query('date'))->startOfMonth()
+            : now()->startOfMonth();
+
+        return view('projects.calendar', [
+            'project' => $project,
+            'tasks' => $project->tasks,
+            'date' => $date,
+        ]);
     }
 
     /**

@@ -10,28 +10,13 @@ class Comment extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
-    protected $fillable = [
-        'task_id',
-        'user_id',
-        'content',
-    ];
+    protected $fillable = ['task_id', 'user_id', 'content'];
 
-    /**
-     * Get the task that the comment belongs to.
-     */
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class);
     }
 
-    /**
-     * Get the user that wrote the comment.
-     */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

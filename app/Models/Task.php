@@ -24,6 +24,16 @@ class Task extends Model
     ];
 
     /**
+     * Get the attributes that should be cast.
+     */
+    protected function casts(): array
+    {
+        return [
+            'due_date' => 'date',
+        ];
+    }
+
+    /**
      * Get the project that the task belongs to.
      */
     public function project(): BelongsTo
