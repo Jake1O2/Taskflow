@@ -77,20 +77,20 @@
                                     @endif
                                 </tr>
                                 {{-- Les membres --}}
-                                @foreach($team->members as $member)
+                                @foreach($members as $member)
                                     <tr class="hover:bg-gray-50">
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <div class="text-sm font-medium text-gray-900">{{ $member->name }}</div>
-                                            <div class="text-sm text-gray-500">{{ $member->email }}</div>
+                                            <div class="text-sm font-medium text-gray-900">{{ $member->user->name }}</div>
+                                            <div class="text-sm text-gray-500">{{ $member->user->email }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
                                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                                                {{ ucfirst($member->pivot->role ?? 'member') }}
+                                                {{ ucfirst($member->role ?? 'member') }}
                                             </span>
                                         </td>
                                         @if(Auth::id() === $team->user_id)
                                             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <form action="{{ route('teams.removeMember', [$team->id, $member->id]) }}" method="POST" class="inline-block" onsubmit="return confirm('Retirer ce membre ?');">
+                                                <form action="{{ route('teams.removeMember', [$team->id, $member->user_id]) }}" method="POST" class="inline-block" onsubmit="return confirm('Retirer ce membre ?');">
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="text-red-600 hover:text-red-900">Retirer</button>
@@ -102,12 +102,12 @@
                             </tbody>
                         </table>
 
-                        @if($team->members->isEmpty())
+                        @if(empty($members) || count($members) === 0)
                             <p class="text-gray-500 italic text-center py-4">Aucun membre ajouté.</p>
                         @endif
                     </div>
 
-                    {{-- Formulaire d'ajout de membre (owner seulement) --}}
+            {{-- Formulaire d'ajout de membre (owner seulement) --}}
                     @if(Auth::id() === $team->user_id)
                         <div class="border-t pt-6">
                             <h3 class="text-lg font-semibold text-gray-800 mb-3">Ajouter un membre</h3>
@@ -115,14 +115,14 @@
                                 @csrf
                                 <div class="flex-1">
                                     <input type="email" name="email" placeholder="Email de l'utilisateur"
-                                           class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                           class="w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2"
                                            value="{{ old('email') }}" required>
                                     @error('email')
                                         <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                                     @enderror
                                 </div>
                                 <div>
-                                    <select name="role" class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <select name="role" class="rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2">
                                         <option value="member">Membre</option>
                                         <option value="admin">Admin</option>
                                     </select>
@@ -132,8 +132,7 @@
                                 </button>
                             </form>
                         </div>
-                    @endif
-                </div>
+                    @endif                </div>
             </div>
         </div>
     </div>

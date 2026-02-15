@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Project;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -106,6 +107,23 @@ class ProjectController extends Controller
             'done' => $project->tasks->where('status', 'done'),
         ];
         return view('projects.kanban', compact('project', 'tasksByStatus'));
+    }
+
+    /**
+     * Recherche des projets par titre (user owns).
+     */
+    public function search(Request $request): View
+    {
+        $validated = $request->validate([
+            'query' => 'required|string|max:255',
+            'team_id' => 'nullable|exists:teams,id',
+        ]);
+        $query = Project::where('user_id', Auth::id())
+            ->where('title', 'like', '%' . $validated['query'] . '%')
+            ->whereTeam($request->input('team_id'))
+            ->orderBy('created_at', 'desc');
+        $projects = $query->get();
+        return view('projects.index', compact('projects'))->with('success', 'Recherche effectuée');
     }
 
     /**

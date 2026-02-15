@@ -47,9 +47,9 @@ class TeamController extends Controller
     /**
      * Affiche les détails de l'équipe + ses membres.
      */
-    public function show(string $id): View
+    public function show(Team $team): View
     {
-        $team = Auth::user()->teams()->with('members')->findOrFail($id);
+        abort_if($team->user_id !== Auth::id(), 403);
         $members = $team->members()->with('user')->get();
         return view('teams.show', compact('team', 'members'));
     }
@@ -57,18 +57,18 @@ class TeamController extends Controller
     /**
      * Affiche le formulaire d'édition.
      */
-    public function edit(string $id): View
+    public function edit(Team $team): View
     {
-        $team = Auth::user()->teams()->findOrFail($id);
+        abort_if($team->user_id !== Auth::id(), 403);
         return view('teams.edit', compact('team'));
     }
 
     /**
      * Valide et modifie l'équipe.
      */
-    public function update(Request $request, string $id): RedirectResponse
+    public function update(Request $request, Team $team): RedirectResponse
     {
-        $team = Auth::user()->teams()->findOrFail($id);
+        abort_if($team->user_id !== Auth::id(), 403);
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -77,15 +77,15 @@ class TeamController extends Controller
 
         $team->update($validated);
 
-        return redirect()->route('teams.show', $id)->with('success', 'Équipe modifiée');
+        return redirect()->route('teams.show', $team->id)->with('success', 'Équipe modifiée');
     }
 
     /**
      * Supprime l'équipe.
      */
-    public function destroy(string $id): RedirectResponse
+    public function destroy(Team $team): RedirectResponse
     {
-        $team = Auth::user()->teams()->findOrFail($id);
+        abort_if($team->user_id !== Auth::id(), 403);
         $team->delete();
 
         return redirect()->route('teams.index')->with('success', 'Équipe supprimée');
@@ -94,9 +94,9 @@ class TeamController extends Controller
     /**
      * Ajoute un membre à l'équipe.
      */
-    public function addMember(Request $request, string $id): RedirectResponse
+    public function addMember(Request $request, string $teamId): RedirectResponse
     {
-        $team = Auth::user()->teams()->findOrFail($id);
+        $team = Auth::user()->teams()->findOrFail($teamId);
         
         $validated = $request->validate([
             'email' => 'required|email|exists:users,email',
@@ -105,16 +105,16 @@ class TeamController extends Controller
         $user = User::where('email', $validated['email'])->first();
         
         if ($team->members()->where('user_id', $user->id)->exists()) {
-            return redirect()->route('teams.show', $id)->with('error', 'Cet utilisateur est déjà membre');
+            return redirect()->route('teams.show', $teamId)->with('error', 'Cet utilisateur est déjà membre');
         }
 
         TeamMember::create([
-            'team_id' => $id,
+            'team_id' => $teamId,
             'user_id' => $user->id,
             'role' => 'member',
         ]);
 
-        return redirect()->route('teams.show', $id)->with('success', 'Membre ajouté');
+        return redirect()->route('teams.show', $teamId)->with('success', 'Membre ajouté');
     }
 
     /**

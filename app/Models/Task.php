@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -21,6 +22,7 @@ class Task extends Model
         'description',
         'status',
         'due_date',
+        'priority',
     ];
 
     /**
@@ -47,5 +49,21 @@ class Task extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * Scope pour filtrer par statut.
+     */
+    public function scopeWhereStatus(Builder $query, string $status): Builder
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Scope pour filtrer par priorité.
+     */
+    public function scopeWherePriority(Builder $query, string $priority): Builder
+    {
+        return $query->where('priority', $priority);
     }
 }

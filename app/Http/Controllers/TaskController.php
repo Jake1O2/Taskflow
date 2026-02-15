@@ -6,6 +6,7 @@ use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\View\View;
 
 class TaskController extends Controller
@@ -86,6 +87,43 @@ class TaskController extends Controller
         $task->delete();
 
         return redirect()->route('projects.show', $projectId)->with('success', 'Tâche supprimée');
+    }
+
+    /**
+     * Recherche des tâches par titre (user owns project).
+     */
+    public function search(Request $request): View
+    {
+        $validated = $request->validate(['query' => 'required|string|max:255']);
+        $tasks = Task::whereHas('project', function ($q) {
+            $q->where('user_id', Auth::id());
+        })
+            ->where('title', 'like', '%' . $validated['query'] . '%')
+            ->with('project')
+            ->orderBy('created_at', 'desc')
+            ->get();
+        return view('tasks.index', compact('tasks'))->with('success', 'Recherche effectuée');
+    }
+
+    /**
+     * Filtre les tâches par status (et optionnellement priority).
+     */
+    public function filter(Request $request): View
+    {
+        $validated = $request->validate([
+            'status' => 'required|in:todo,in_progress,done',
+            'priority' => 'nullable|string|max:50',
+        ]);
+        $query = Task::whereHas('project', function ($q) {
+            $q->where('user_id', Auth::id());
+        })->where('status', $validated['status']);
+
+        if (Schema::hasColumn('tasks', 'priority') && !empty($validated['priority'] ?? null)) {
+            $query->where('priority', $validated['priority']);
+        }
+
+        $tasks = $query->with('project')->orderBy('created_at', 'desc')->get();
+        return view('tasks.index', compact('tasks'))->with('success', 'Recherche effectuée');
     }
 
     /**
