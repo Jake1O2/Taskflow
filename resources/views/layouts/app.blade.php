@@ -17,6 +17,7 @@
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <a href="{{ route('dashboard') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium text-gray-500 hover:text-gray-700">Dashboard</a>
                         <a href="{{ route('projects.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium text-gray-500 hover:text-gray-700">Projets</a>
+                        <a href="{{ route('teams.index') }}" class="inline-flex items-center px-1 pt-1 border-b-2 border-transparent hover:border-gray-300 text-sm font-medium text-gray-500 hover:text-gray-700">Équipes</a>
                     </div>
                 </div>
                 <div class="flex items-center">

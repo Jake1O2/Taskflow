@@ -28,24 +28,14 @@
                     </div>
 
                     <div class="mb-6 flex flex-wrap gap-2">
-                        <a href="{{ route('projects.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
-                            Retour
-                        </a>
-                        <a href="{{ route('projects.kanban', $project->id) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-                            Vue Kanban
-                        </a>
-                        <a href="{{ route('projects.calendar', $project->id) }}" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">
-                            Vue Calendrier
-                        </a>
-                        <a href="{{ route('projects.edit', $project->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                            Éditer
-                        </a>
+                        <a href="{{ route('projects.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">Retour</a>
+                        <a href="{{ route('projects.kanban', $project->id) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">Vue Kanban</a>
+                        <a href="{{ route('projects.calendar', $project->id) }}" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">Vue Calendrier</a>
+                        <a href="{{ route('projects.edit', $project->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Éditer</a>
                         <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                                Supprimer
-                            </button>
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Supprimer</button>
                         </form>
                     </div>
 
@@ -81,7 +71,7 @@
                             @foreach($project->tasks as $task)
                                 <li class="py-4 flex justify-between items-center">
                                     <div>
-                                        <p class="text-sm font-medium text-gray-900">{{ $task->title }}</p>
+                                        <a href="{{ route('tasks.show', $task->id) }}" class="text-sm font-medium text-gray-900 hover:text-blue-600">{{ $task->title }}</a>
                                         <p class="text-sm text-gray-500">{{ \Illuminate\Support\Str::limit($task->description, 50) }}</p>
                                     </div>
                                     <div class="flex items-center space-x-4">

@@ -99,7 +99,7 @@ class ProjectController extends Controller
      */
     public function kanban(string $id): View
     {
-        $project = Auth::user()->projects()->findOrFail($id);
+        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
         $tasksByStatus = [
             'todo' => $project->tasks->where('status', 'todo'),
             'in_progress' => $project->tasks->where('status', 'in_progress'),
@@ -113,7 +113,7 @@ class ProjectController extends Controller
      */
     public function calendar(Request $request, string $id): View
     {
-        $project = Auth::user()->projects()->findOrFail($id);
+        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
         $date = $request->has('date')
             ?\Carbon\Carbon::parse($request->query('date'))->startOfMonth()
             : now()->startOfMonth();
