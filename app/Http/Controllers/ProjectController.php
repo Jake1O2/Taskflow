@@ -99,37 +99,22 @@ class ProjectController extends Controller
      */
     public function kanban(string $id): View
     {
-        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
-
+        $project = Auth::user()->projects()->findOrFail($id);
         $tasksByStatus = [
             'todo' => $project->tasks->where('status', 'todo'),
             'in_progress' => $project->tasks->where('status', 'in_progress'),
             'done' => $project->tasks->where('status', 'done'),
         ];
-
         return view('projects.kanban', compact('project', 'tasksByStatus'));
     }
 
     /**
      * Affiche la vue Calendrier du projet.
      */
-    public function calendar(Request $request, string $id): View
+    public function calendar(string $id): View
     {
-        $project = $this->currentUser()->projects()->findOrFail($id);
-
-        $date = $request->input('date') ? \Carbon\Carbon::parse($request->input('date')) : \Carbon\Carbon::now();
-        $date->startOfMonth(); // S'assurer d'être au début du mois
-
-        $currentMonth = $date->month;
-        $currentYear = $date->year;
-
-        $tasks = $project->tasks()
-            ->whereNotNull('due_date')
-            ->whereYear('due_date', $currentYear)
-            ->whereMonth('due_date', $currentMonth)
-            ->get();
-
-        return view('projects.calendar', compact('project', 'tasks', 'date', 'currentMonth', 'currentYear'));
+        $project = Auth::user()->projects()->findOrFail($id);
+        return view('projects.calendar', ['project' => $project, 'tasks' => $project->tasks, 'month' => now()->month, 'year' => now()->year]);
     }
 
     /**

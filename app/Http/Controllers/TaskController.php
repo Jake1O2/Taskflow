@@ -39,6 +39,16 @@ class TaskController extends Controller
     }
 
     /**
+     * Affiche les détails d'une tâche avec ses commentaires.
+     */
+    public function show(string $id): View
+    {
+        $task = Task::findOrFail($id);
+        abort_if($task->project->user_id !== Auth::id(), 403);
+        return view('tasks.show', ['task' => $task, 'comments' => $task->comments()->latest()->get()]);
+    }
+
+    /**
      * Affiche le formulaire d'édition.
      */
     public function edit(string $id): View

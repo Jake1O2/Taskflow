@@ -18,13 +18,13 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
                 {{-- Navigation Mois --}}
                 <div class="flex justify-between items-center mb-6">
-                    <a href="{{ route('projects.calendar', ['id' => $project->id, 'date' => $date->copy()->subMonth()->format('Y-m-d')]) }}" class="text-gray-600 hover:text-gray-900 font-bold px-4 py-2 rounded hover:bg-gray-100">
+                    <a href="{{ route('projects.calendar', [$project->id, 'date' => $date->copy()->subMonth()->format('Y-m-d')]) }}" class="text-gray-600 hover:text-gray-900 font-bold px-4 py-2 rounded hover:bg-gray-100">
                         &larr; Précédent
                     </a>
                     <h3 class="text-xl font-bold text-gray-800 capitalize">
-                        {{ $date->translatedFormat('F Y') }}
+                        {{ $date->format('F Y') }}
                     </h3>
-                    <a href="{{ route('projects.calendar', ['id' => $project->id, 'date' => $date->copy()->addMonth()->format('Y-m-d')]) }}" class="text-gray-600 hover:text-gray-900 font-bold px-4 py-2 rounded hover:bg-gray-100">
+                    <a href="{{ route('projects.calendar', [$project->id, 'date' => $date->copy()->addMonth()->format('Y-m-d')]) }}" class="text-gray-600 hover:text-gray-900 font-bold px-4 py-2 rounded hover:bg-gray-100">
                         Suivant &rarr;
                     </a>
                 </div>
@@ -37,7 +37,7 @@
                     @endforeach
 
                     {{-- Cases vides début de mois --}}
-                    @for ($i = 1; $i < $date->dayOfWeekIso; $i++)
+                    @for ($i = 1; $i < $date->startOfMonth()->dayOfWeekIso; $i++)
                         <div class="bg-white h-32 p-2"></div>
                     @endfor
 

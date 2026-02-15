@@ -23,7 +23,7 @@
                 <div class="bg-gray-100 p-4 rounded-lg shadow-inner min-h-[500px]">
                     <h3 class="font-bold text-gray-700 mb-4 flex justify-between items-center uppercase text-sm tracking-wide">
                         À faire
-                        <span class="bg-gray-300 text-gray-700 text-xs font-bold px-2 py-1 rounded-full">{{ $tasksByStatus['todo']->count() }}</span>
+                        <span class="bg-gray-300 text-gray-700 text-xs font-bold px-2 py-1 rounded-full">{{ count($tasksByStatus['todo']) }}</span>
                     </h3>
                     <div class="space-y-3">
                         @foreach($tasksByStatus['todo'] as $task)
@@ -47,7 +47,7 @@
                 <div class="bg-blue-50 p-4 rounded-lg shadow-inner min-h-[500px]">
                     <h3 class="font-bold text-blue-700 mb-4 flex justify-between items-center uppercase text-sm tracking-wide">
                         En cours
-                        <span class="bg-blue-200 text-blue-700 text-xs font-bold px-2 py-1 rounded-full">{{ $tasksByStatus['in_progress']->count() }}</span>
+                        <span class="bg-blue-200 text-blue-700 text-xs font-bold px-2 py-1 rounded-full">{{ count($tasksByStatus['in_progress']) }}</span>
                     </h3>
                     <div class="space-y-3">
                         @foreach($tasksByStatus['in_progress'] as $task)
@@ -71,7 +71,7 @@
                 <div class="bg-green-50 p-4 rounded-lg shadow-inner min-h-[500px]">
                     <h3 class="font-bold text-green-700 mb-4 flex justify-between items-center uppercase text-sm tracking-wide">
                         Terminée
-                        <span class="bg-green-200 text-green-700 text-xs font-bold px-2 py-1 rounded-full">{{ $tasksByStatus['done']->count() }}</span>
+                        <span class="bg-green-200 text-green-700 text-xs font-bold px-2 py-1 rounded-full">{{ count($tasksByStatus['done']) }}</span>
                     </h3>
                     <div class="space-y-3">
                         @foreach($tasksByStatus['done'] as $task)

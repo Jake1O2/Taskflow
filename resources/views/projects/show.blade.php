@@ -12,43 +12,41 @@
 
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg mb-6">
                 <div class="p-6 bg-white border-b border-gray-200">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 class="text-3xl font-bold text-gray-900">{{ $project->title }}</h2>
-                            <div class="mt-2">
-                                @php
-                                    $statusClasses = [
-                                        'preparation' => 'bg-gray-100 text-gray-800',
-                                        'in_progress' => 'bg-blue-100 text-blue-800',
-                                        'completed' => 'bg-green-100 text-green-800',
-                                    ];
-                                @endphp
-                                <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $statusClasses[$project->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                    {{ ucfirst(str_replace('_', ' ', $project->status)) }}
-                                </span>
-                            </div>
-                        </div>
-                        <div class="flex space-x-2">
-                            <a href="{{ route('projects.index') }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded">
-                                Retour
-                            </a>
-                            <a href="{{ route('projects.kanban', $project->id) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
-                                Vue Kanban
-                            </a>
-                            <a href="{{ route('projects.calendar', $project->id) }}" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">
-                                Vue Calendrier
-                            </a>
-                            <a href="{{ route('projects.edit', $project->id) }}" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
-                                Éditer
-                            </a>
-                            <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
-                                    Supprimer
-                                </button>
-                            </form>
-                        </div>
+                    <h2 class="text-3xl font-bold text-gray-900 mb-4">{{ $project->title }}</h2>
+                    
+                    <div class="mb-4">
+                        @php
+                            $statusClasses = [
+                                'preparation' => 'bg-gray-100 text-gray-800',
+                                'in_progress' => 'bg-blue-100 text-blue-800',
+                                'completed' => 'bg-green-100 text-green-800',
+                            ];
+                        @endphp
+                        <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full {{ $statusClasses[$project->status] ?? 'bg-gray-100 text-gray-800' }}">
+                            {{ ucfirst(str_replace('_', ' ', $project->status)) }}
+                        </span>
+                    </div>
+
+                    <div class="mb-6 flex flex-wrap gap-2">
+                        <a href="{{ route('projects.index') }}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                            Retour
+                        </a>
+                        <a href="{{ route('projects.kanban', $project->id) }}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded">
+                            Vue Kanban
+                        </a>
+                        <a href="{{ route('projects.calendar', $project->id) }}" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">
+                            Vue Calendrier
+                        </a>
+                        <a href="{{ route('projects.edit', $project->id) }}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Éditer
+                        </a>
+                        <form action="{{ route('projects.destroy', $project->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                                Supprimer
+                            </button>
+                        </form>
                     </div>
 
                     <div class="mb-6">
