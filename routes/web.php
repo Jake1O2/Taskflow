@@ -81,4 +81,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('teams', TeamController::class);
     Route::post('/teams/{teamId}/members', [TeamController::class, 'addMember'])->name('teams.addMember');
     Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class , 'removeMember'])->name('teams.removeMember');
+
+    // API JSON pour animations (middleware auth)
+    Route::prefix('api')->middleware('auth')->group(function () {
+        Route::get('/stats', [ProjectController::class, 'getStats'])->name('api.stats');
+        Route::patch('/tasks/{id}/status', [TaskController::class, 'updateStatus'])->name('api.tasks.updateStatus');
+    });
 });

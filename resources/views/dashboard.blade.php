@@ -1,7 +1,10 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-12">
+    @if(isset($animationTimestamps))
+        <script>window.__dashboardAnimationTimestamps = @json($animationTimestamps);</script>
+    @endif
+    <div class="py-12" @if(isset($animationTimestamps)) data-loaded-at="{{ $animationTimestamps['loadedAt'] ?? '' }}" @endif>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <h2 class="font-semibold text-xl text-gray-800 leading-tight mb-6">
                 Bienvenue, {{ Auth::user()->name }} !

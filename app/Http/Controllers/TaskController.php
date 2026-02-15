@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -124,6 +125,18 @@ class TaskController extends Controller
 
         $tasks = $query->with('project')->orderBy('created_at', 'desc')->get();
         return view('tasks.index', compact('tasks'))->with('success', 'Recherche effectuée');
+    }
+
+    /**
+     * API: met à jour le statut d'une tâche (PATCH), retourne la tâche pour animations.
+     */
+    public function updateStatus(Request $request, string $id): JsonResponse
+    {
+        $task = $this->getTaskForUser($id);
+        $validated = $request->validate(['status' => 'required|in:todo,in_progress,done']);
+        $task->update($validated);
+        $task->load('project');
+        return response()->json($task);
     }
 
     /**

@@ -44,6 +44,12 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard', compact('projects', 'stats', 'recentProjects', 'recentTasks'));
+        // Timestamps pour animations au chargement
+        $animationTimestamps = [
+            'loadedAt' => now()->toIso8601String(),
+            'loadedAtUnix' => now()->timestamp,
+        ];
+
+        return view('dashboard', compact('projects', 'stats', 'recentProjects', 'recentTasks', 'animationTimestamps'));
     }
 }

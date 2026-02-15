@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -10,6 +11,23 @@ use Illuminate\View\View;
 
 class ProjectController extends Controller
 {
+    /**
+     * API: statistiques (projets, tâches, équipes) pour animations.
+     */
+    public function getStats(): JsonResponse
+    {
+        $user = Auth::user();
+        $projectsCount = $user->projects()->count();
+        $tasksCount = $user->projects()->with('tasks')->get()->flatMap(fn ($p) => $p->tasks)->count();
+        $teamsCount = $user->teams()->count();
+
+        return response()->json([
+            'projects' => $projectsCount,
+            'tasks' => $tasksCount,
+            'teams' => $teamsCount,
+        ]);
+    }
+
     /**
      * Affiche la liste des projets de l'utilisateur connecté.
      */
