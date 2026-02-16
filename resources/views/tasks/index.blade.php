@@ -51,7 +51,7 @@
                             @if($task->due_date)
                                 <span class="w-1 h-1 rounded-full bg-gray-300"></span>
                                 <span class="text-[10px] font-bold {{ \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status !== 'done' ? 'text-danger' : 'text-gray-400' }} uppercase tracking-widest">
-                                    {{ \Carbon\Carbon::parse($task->due_date)->format('d M') }}
+                                    {{ \Carbon\Carbon::parse($task->due_date)->translatedFormat('j M') }}
                                 </span>
                             @endif
                         </div>

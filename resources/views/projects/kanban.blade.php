@@ -41,7 +41,7 @@
                                 <div class="mt-4 pt-4 border-t border-gray-50 flex items-center justify-between">
                                     <div class="flex items-center gap-1.5 text-[10px] font-bold text-gray-400">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d M') : 'Aucune' }}
+                                        {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->translatedFormat('j M') : 'Aucune' }}
                                     </div>
                                     <div class="flex -space-x-1.5">
                                         <div class="w-6 h-6 rounded-lg bg-gray-100 border border-white flex items-center justify-center text-[10px] font-bold text-gray-400">?</div>
