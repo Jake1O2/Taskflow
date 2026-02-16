@@ -1,58 +1,52 @@
 @extends('layouts.guest')
 
 @section('content')
-    <div class="mb-6 text-center">
-        <h2 class="text-2xl font-bold text-gray-900">Inscription</h2>
-        <p class="text-sm text-gray-600">Créez votre compte pour commencer</p>
-    </div>
-
-    <form method="POST" action="{{ route('register') }}">
+    <h2 class="text-2xl font-bold mb-8 text-gray-900">Créer un compte</h2>
+    
+    <form method="POST" action="{{ route('register') }}" class="space-y-5">
         @csrf
 
-        <!-- Name -->
-        <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-gray-700">Nom</label>
-            <input id="name" type="text" name="name" value="{{ old('name') }}" required autofocus
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('name') border-red-500 @enderror">
+        <div class="space-y-2">
+            <label class="text-sm font-bold text-gray-700 ml-1" for="name">Nom complet</label>
+            <x-text-input id="name" type="text" name="name" placeholder="John Doe" :value="old('name')" required autofocus />
             @error('name')
-                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                <p class="text-danger text-xs mt-1 font-semibold">{{ $message }}</p>
             @enderror
         </div>
 
-        <!-- Email -->
-        <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-            <input id="email" type="email" name="email" value="{{ old('email') }}" required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('email') border-red-500 @enderror">
+        <div class="space-y-2">
+            <label class="text-sm font-bold text-gray-700 ml-1" for="email">Adresse email</label>
+            <x-text-input id="email" type="email" name="email" placeholder="nom@exemple.com" :value="old('email')" required />
             @error('email')
-                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                <p class="text-danger text-xs mt-1 font-semibold">{{ $message }}</p>
             @enderror
         </div>
 
-        <!-- Password -->
-        <div class="mb-4">
-            <label for="password" class="block text-sm font-medium text-gray-700">Mot de passe</label>
-            <input id="password" type="password" name="password" required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm @error('password') border-red-500 @enderror">
-            @error('password')
-                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-            @enderror
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 ml-1" for="password">Mot de passe</label>
+                <x-text-input id="password" type="password" name="password" placeholder="••••••••" required />
+            </div>
+            <div class="space-y-2">
+                <label class="text-sm font-bold text-gray-700 ml-1" for="password_confirmation">Confirmer</label>
+                <x-text-input id="password_confirmation" type="password" name="password_confirmation" placeholder="••••••••" required />
+            </div>
         </div>
+        @error('password')
+            <p class="text-danger text-xs mt-1 font-semibold">{{ $message }}</p>
+        @enderror
 
-        <!-- Confirm Password -->
-        <div class="mb-6">
-            <label for="password_confirmation" class="block text-sm font-medium text-gray-700">Confirmer le mot de passe</label>
-            <input id="password_confirmation" type="password" name="password_confirmation" required
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-        </div>
-
-        <div class="flex items-center justify-between">
-            <a class="text-sm text-blue-600 hover:text-blue-900 hover:underline" href="{{ route('login') }}">
-                Déjà inscrit ? Connectez-vous
-            </a>
-            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+        <div class="pt-6">
+            <x-primary-button class="w-full justify-center">
                 S'inscrire
-            </button>
+            </x-primary-button>
+        </div>
+
+        <div class="text-center pt-2">
+            <p class="text-sm text-gray-500 font-medium">
+                Déjà un compte ? 
+                <a href="{{ route('login') }}" class="text-primary font-bold hover:underline">Se connecter</a>
+            </p>
         </div>
     </form>
 @endsection

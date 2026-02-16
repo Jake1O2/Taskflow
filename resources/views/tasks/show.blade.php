@@ -1,106 +1,103 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-slide-up">
+        <!-- Task Header Card -->
+        <header class="card-premium border-none p-10 flex flex-col md:flex-row justify-between items-start gap-8 relative overflow-hidden">
+            <!-- Background Accent -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-8 -mt-8"></div>
             
-            @if(session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm animate-fade" role="alert">
-                    <p class="font-bold flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Succès
-                    </p>
-                    <p>{{ session('success') }}</p>
+            <div class="flex-1 space-y-4">
+                <div class="flex items-center gap-3">
+                    @php
+                        $statusMeta = [
+                            'todo' => ['label' => 'À faire', 'color' => 'bg-gray-100 text-gray-500 border-gray-200'],
+                            'in_progress' => ['label' => 'En cours', 'color' => 'bg-blue-50 text-blue-600 border-blue-100'],
+                            'done' => ['label' => 'Terminé', 'color' => 'bg-success/10 text-success border-success/20'],
+                        ];
+                        $meta = $statusMeta[$task->status] ?? $statusMeta['todo'];
+                    @endphp
+                    <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border {{ $meta['color'] }}">
+                        {{ $meta['label'] }}
+                    </span>
+                    <span class="text-xs text-gray-400 font-bold uppercase tracking-widest">
+                        Tâche #{{ $task->id }}
+                    </span>
                 </div>
-            @endif
+                
+                <h1 class="text-4xl font-extrabold text-gray-900 leading-tight">
+                    {{ $task->title }}
+                </h1>
 
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg mb-6 border border-gray-100 animate-slide-down">
-                <div class="p-8">
-                    <div class="flex flex-col md:flex-row justify-between md:items-start gap-6">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-4 mb-4">
-                                <div class="shrink-0 h-16 w-16 flex items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-teal-600 text-white font-bold text-3xl shadow-md">
-                                    {{ substr($task->title, 0, 1) }}
-                                </div>
-                                <div>
-                                    <h1 class="text-3xl font-bold text-gray-900">{{ $task->title }}</h1>
-                                    @php
-                                        $statusStyles = [
-                                            'todo' => 'bg-gray-100 text-gray-800 border-gray-200',
-                                            'in_progress' => 'bg-blue-100 text-blue-800 border-blue-200',
-                                            'done' => 'bg-green-100 text-green-800 border-green-200',
-                                        ];
-                                        $statusLabels = [
-                                            'todo' => 'À faire',
-                                            'in_progress' => 'En cours',
-                                            'done' => 'Terminé',
-                                        ];
-                                    @endphp
-                                    <div class="mt-2 flex gap-2">
-                                         <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full border {{ $statusStyles[$task->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                            {{ $statusLabels[$task->status] ?? ucfirst($task->status) }}
-                                        </span>
-                                        @if($task->priority)
-                                            @php
-                                                $priorityColors = [
-                                                    'low' => 'bg-blue-50 text-blue-700 border-blue-100',
-                                                    'medium' => 'bg-yellow-50 text-yellow-700 border-yellow-100',
-                                                    'high' => 'bg-red-50 text-red-700 border-red-100',
-                                                ];
-                                                $priorityLabels = [
-                                                    'low' => 'Priorité Basse',
-                                                    'medium' => 'Priorité Moyenne',
-                                                    'high' => 'Priorité Haute',
-                                                ];
-                                            @endphp
-                                             <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full border {{ $priorityColors[$task->priority] ?? 'bg-gray-100' }}">
-                                                {{ $priorityLabels[$task->priority] ?? ucfirst($task->priority) }}
-                                            </span>
-                                        @endif
-                                    </div>
-                                </div>
+                @if($task->project)
+                    <a href="{{ route('projects.show', $task->project_id) }}" class="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                        Projet : {{ $task->project->title }}
+                    </a>
+                @endif
+            </div>
+
+            <div class="flex gap-2 shrink-0">
+                <a href="{{ route('tasks.edit', $task->id) }}" class="px-6 py-3 bg-gray-900 text-white rounded-2xl font-bold text-sm shadow-xl hover:scale-105 active:scale-95 transition-all">
+                    Modifier
+                </a>
+                <a href="{{ url()->previous() }}" class="px-6 py-3 bg-gray-50 text-gray-700 rounded-2xl font-bold text-sm border border-gray-100 hover:bg-gray-100 transition-all">
+                    Fermer
+                </a>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Task Content -->
+            <div class="lg:col-span-2 card-premium">
+                <h2 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-4 px-1">Description</h2>
+                <div class="prose prose-blue max-w-none">
+                    <p class="text-gray-700 leading-relaxed text-lg italic whitespace-pre-wrap">
+                        {{ $task->description ?: 'Aucun détail supplémentaire pour cette tâche.' }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Task Sidebar -->
+            <div class="space-y-6">
+                <div class="card-premium">
+                    <h2 class="text-xs font-bold uppercase tracking-widest text-gray-400 mb-6 px-1">Informations</h2>
+                    <div class="space-y-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                             </div>
-                            
-                            <div class="prose prose-indigo max-w-none text-gray-600 bg-gray-50 p-4 rounded-lg border border-gray-100">
-                                {{ $task->description ?: 'Aucune description disponible.' }}
-                            </div>
-                            
-                            <div class="flex gap-8 mt-6 text-sm text-gray-600">
-                                <div class="flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                    <span class="font-semibold">Échéance :</span> 
-                                    {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : 'Non définie' }}
-                                </div>
-                                 <div class="flex items-center gap-2">
-                                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
-                                    <span class="font-semibold">Projet :</span> 
-                                    @if($task->project)
-                                        <a href="{{ route('projects.show', $task->project->id) }}" class="text-blue-600 hover:underline">{{ $task->project->title }}</a>
-                                    @else
-                                        <span class="text-gray-400 italic">Aucun</span>
-                                    @endif
-                                </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-gray-400 uppercase">Échéance</span>
+                                <p class="text-sm font-bold text-gray-900">{{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d F Y') : 'Non définie' }}</p>
                             </div>
                         </div>
 
-                        <div class="flex flex-col gap-3 w-full md:w-auto">
-                            <a href="{{ route('tasks.edit', $task->id) }}" class="inline-flex justify-center items-center px-4 py-2 bg-white border border-gray-300 rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest shadow-sm hover:bg-gray-50 transition ease-in-out duration-150">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
-                                Éditer
-                            </a>
-                            <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="w-full inline-flex justify-center items-center px-4 py-2 bg-red-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 transition ease-in-out duration-150 shadow-sm">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                    Supprimer
-                                </button>
-                            </form>
-                             <a href="{{ route('tasks.index') }}" class="inline-flex justify-center items-center px-4 py-2 bg-gray-100 border border-transparent rounded-md font-semibold text-xs text-gray-600 uppercase tracking-widest hover:bg-gray-200 transition ease-in-out duration-150">
-                                Retour
-                            </a>
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div>
+                                <span class="block text-[10px] font-bold text-gray-400 uppercase">Créée le</span>
+                                <p class="text-sm font-bold text-gray-900">{{ $task->created_at->format('d/m/Y H:i') }}</p>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Action Card -->
+                <div class="card-premium bg-primary text-white border-none shadow-xl shadow-primary/20 p-8 text-center group">
+                    <h3 class="font-extrabold text-xl mb-2">Terminée ?</h3>
+                    <p class="text-xs font-bold opacity-80 uppercase tracking-widest mb-6">Mettez à jour le statut</p>
+                    <form action="{{ route('tasks.update', $task->id) }}" method="POST">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="status" value="{{ $task->status === 'done' ? 'todo' : 'done' }}">
+                        <input type="hidden" name="title" value="{{ $task->title }}">
+                        <button type="submit" class="w-full py-3 bg-white text-primary rounded-2xl font-extrabold text-sm shadow-lg hover:scale-105 transition-all">
+                            {{ $task->status === 'done' ? 'Remettre à faire' : 'Marquer comme terminée' }}
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

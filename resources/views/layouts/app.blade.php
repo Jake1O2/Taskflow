@@ -1,87 +1,90 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'TaskFlow') }}</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body class="bg-gray-50 font-sans antialiased text-gray-700">
-    <nav class="bg-gradient-to-r from-blue-600 to-blue-800 shadow-lg sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Logo & Links -->
-                <div class="flex items-center">
-                    <div class="shrink-0 flex items-center">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
+        <title>{{ config('app.name', 'TaskFlow') }}</title>
+
+        <!-- Fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        
+        <!-- Scripts and Styles -->
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    </head>
+    <body class="antialiased font-sans bg-gray-50 text-gray-900">
+        <div class="min-h-screen relative">
+            <!-- Decorative Background Elements -->
+            <div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+                <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-blue-100/40 rounded-full blur-[120px]"></div>
+                <div class="absolute top-[20%] -right-[10%] w-[35%] h-[35%] bg-purple-100/30 rounded-full blur-[120px]"></div>
+            </div>
+
+            <!-- Floating Navbar -->
+            <nav class="sticky top-4 z-50 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="glass rounded-2xl shadow-premium border border-white/40 flex items-center justify-between h-16 px-6">
+                    <!-- Logo Area -->
+                    <div class="flex items-center gap-8">
                         <a href="{{ route('dashboard') }}" class="flex items-center gap-2 group">
-                            <span class="font-bold text-xl text-white tracking-tight group-hover:text-blue-100 transition-colors">TaskFlow</span>
+                            <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <span class="font-bold text-xl tracking-tight text-gray-900">TaskFlow</span>
                         </a>
-                    </div>
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')" class="text-white/90 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all">
-                            Dashboard
-                        </x-nav-link>
-                        <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')" class="text-white/90 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all">
-                            Projets
-                        </x-nav-link>
-                        <x-nav-link :href="route('teams.index')" :active="request()->routeIs('teams.*')" class="text-white/90 hover:text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all">
-                            Équipes
-                        </x-nav-link>
-                    </div>
-                </div>
 
-                <!-- Search Bar -->
-                <div class="hidden sm:flex items-center flex-1 max-w-md mx-8">
-                    <form action="{{ route('search') }}" method="GET" class="w-full relative group">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <span class="text-gray-400 group-focus-within:text-blue-500 transition-colors">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                            </span>
+                        <!-- Desktop Navigation -->
+                        <div class="hidden md:flex items-center gap-1">
+                            <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Tableau de bord</x-nav-link>
+                            <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">Projets</x-nav-link>
+                            <x-nav-link :href="route('teams.index')" :active="request()->routeIs('teams.*')">Équipes</x-nav-link>
+                            <x-nav-link :href="route('tasks.index')" :active="request()->routeIs('tasks.*')">Tâches</x-nav-link>
                         </div>
-                        <input type="text" name="q" placeholder="Rechercher projets, tâches..."
-                               class="block w-full pl-10 pr-3 py-2 border-none rounded-full leading-5 bg-white/10 text-white placeholder-white/70 focus:outline-none focus:bg-white focus:text-gray-900 focus:placeholder-gray-500 focus:ring-2 focus:ring-white/50 sm:text-sm transition-all duration-300 shadow-inner"
-                               value="{{ request('q') }}">
-                    </form>
-                </div>
+                    </div>
 
-                <!-- Profile & Logout -->
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('profile') }}" class="text-white/90 hover:text-white font-medium text-sm transition-colors flex items-center gap-2">
-                        <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-xs font-bold ring-2 ring-transparent hover:ring-white/50 transition-all">
-                            {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                    <!-- Right Area: Search & Profile -->
+                    <div class="flex items-center gap-4">
+                        <!-- Refined Search Bar -->
+                        <div class="hidden sm:flex items-center w-64 group relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <svg class="w-4 h-4 text-gray-400 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                            <form action="{{ route('search') }}" method="GET" class="w-full">
+                                <input type="text" name="q" placeholder="Rechercher..." 
+                                       class="block w-full pl-10 pr-3 py-2 bg-gray-100/50 border-none rounded-xl text-sm placeholder-gray-500 focus:bg-white focus:ring-2 focus:ring-primary/20 transition-all shadow-inner"
+                                       value="{{ request('q') }}">
+                            </form>
                         </div>
-                        <span class="hidden md:inline">{{ Auth::user()->name }}</span>
-                    </a>
-                    <form method="POST" action="{{ route('logout') }}">
-                        @csrf
-                        <button type="submit" class="text-red-100 hover:text-red-50 hover:bg-red-600/20 px-3 py-2 rounded-md text-sm font-medium transition-all">
-                            Déconnexion
-                        </button>
-                    </form>
+
+                        <!-- Profile Dropdown (Simplified for layout demo) -->
+                        <div class="flex items-center gap-3 pl-4 border-l border-gray-200/50">
+                            <span class="hidden lg:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="p-2 text-gray-500 hover:text-danger hover:bg-danger/5 rounded-xl transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </nav>
+            </nav>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 min-h-screen animate-fade">
-        @yield('content')
-    </main>
+            <!-- Page Content -->
+            <main class="animate-fade-in py-8">
+                @yield('content')
+            </main>
 
-    <footer class="bg-white border-t border-gray-200 mt-auto">
-        <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-            <div class="flex space-x-6 mb-4">
-                <a href="#" class="text-gray-400 hover:text-gray-500">
-                    <span class="sr-only">GitHub</span>
-                    <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-            </div>
-            <p class="text-center text-gray-400 text-sm">&copy; {{ date('Y') }} TaskFlow. Design by Antigravity.</p>
+            <!-- Refined Footer -->
+            <footer class="py-12 mt-auto border-t border-gray-100 bg-white/50">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
+                    <span class="font-bold text-gray-900">TaskFlow</span>
+                    <p class="text-gray-500 text-sm italic">Simplifiez votre gestion de projet.</p>
+                    <div class="text-xs text-gray-400 mt-4">&copy; {{ date('Y') }} TaskFlow. Tous droits réservés.</div>
+                </div>
+            </footer>
         </div>
-    </footer>
-</body>
+    </body>
 </html>

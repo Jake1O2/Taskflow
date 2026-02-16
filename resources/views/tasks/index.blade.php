@@ -1,117 +1,84 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center mb-6 animate-slide-down">
-                <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-2">
-                    <span class="text-green-600">✅</span> Tâches
-                </h1>
-                <a href="{{ route('tasks.create') }}" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:from-blue-700 hover:to-blue-800 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
-                    + Nouvelle Tâche
-                </a>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-slide-up">
+        <header class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Tâches</h1>
+                <p class="text-gray-500 font-medium">Suivez vos priorités sur tous vos projets.</p>
             </div>
+            <a href="{{ route('tasks.create') }}" class="px-5 py-2.5 bg-primary text-white rounded-2xl font-semibold shadow-lg shadow-primary/20 hover:scale-105 transition-all text-sm">
+                + Nouvelle Tâche
+            </a>
+        </header>
 
-            @if(session('success'))
-                <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded shadow-sm animate-fade" role="alert">
-                    <p class="font-bold flex items-center gap-2">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        Succès
-                    </p>
-                    <p>{{ session('success') }}</p>
-                </div>
-            @endif
+        <!-- Tasks Filter Bar -->
+        <div class="glass p-2 rounded-2xl flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <a href="{{ route('tasks.index') }}" class="px-5 py-2 rounded-xl text-sm font-bold bg-white shadow-sm text-primary transition-all">Toutes</a>
+            <span class="text-gray-300 mx-2">|</span>
+            <button class="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-white/50 transition-all">À faire</button>
+            <button class="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-white/50 transition-all">En cours</button>
+            <button class="px-5 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-white/50 transition-all">Terminées</button>
+        </div>
 
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 animate-slide-down" style="animation-delay: 0.1s">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Titre</th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Projet</th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Statut</th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Échéance</th>
-                                <th scope="col" class="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            @forelse($tasks as $task)
-                                <tr class="hover:bg-green-50/50 transition-colors duration-200 group">
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        <div class="flex items-center">
-                                            <div class="shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-teal-600 text-white font-bold text-lg shadow-sm">
-                                                {{ substr($task->title, 0, 1) }}
-                                            </div>
-                                            <div class="ml-4">
-                                                <div class="text-sm font-bold text-gray-900 group-hover:text-green-600 transition-colors">{{ $task->title }}</div>
-                                                <div class="text-sm text-gray-500 truncate max-w-xs">{{ $task->description }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @if($task->project)
-                                            <a href="{{ route('projects.show', $task->project->id) }}" class="text-sm text-blue-600 hover:text-blue-900 hover:underline">
-                                                {{ $task->project->title }}
-                                            </a>
-                                        @else
-                                            <span class="text-sm text-gray-400 italic">Aucun projet</span>
-                                        @endif
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
-                                        @php
-                                            $statusStyles = [
-                                                'todo' => 'bg-gray-100 text-gray-800 border-gray-200',
-                                                'in_progress' => 'bg-blue-100 text-blue-800 border-blue-200',
-                                                'done' => 'bg-green-100 text-green-800 border-green-200',
-                                            ];
-                                            $statusLabels = [
-                                                'todo' => 'À faire',
-                                                'in_progress' => 'En cours',
-                                                'done' => 'Terminé',
-                                            ];
-                                        @endphp
-                                        <span class="px-2.5 py-0.5 inline-flex text-xs leading-5 font-semibold rounded-full border {{ $statusStyles[$task->status] ?? 'bg-gray-100 text-gray-800' }}">
-                                            {{ $statusLabels[$task->status] ?? ucfirst($task->status) }}
-                                        </span>
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                        {{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : '-' }}
-                                    </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-3">
-                                        <a href="{{ route('tasks.show', $task->id) }}" class="text-blue-600 hover:text-blue-900 p-2 hover:bg-blue-50 rounded-full transition-colors" title="Voir">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                        </a>
-                                        <a href="{{ route('tasks.edit', $task->id) }}" class="text-indigo-600 hover:text-indigo-900 p-2 hover:bg-indigo-50 rounded-full transition-colors" title="Éditer">
-                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                        </a>
-                                        <form action="{{ route('tasks.destroy', $task->id) }}" method="POST" class="inline-block" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?');">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="text-red-600 hover:text-red-900 p-2 hover:bg-red-50 rounded-full transition-colors" title="Supprimer">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                            </button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="5" class="px-6 py-12 text-center text-gray-500">
-                                        <div class="flex flex-col items-center">
-                                            <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                                            <p class="text-lg font-medium">Aucune tâche trouvée.</p>
-                                            <p class="text-sm mt-1">Créez votre première tâche !</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+        <!-- Task List -->
+        <div class="space-y-4">
+            @forelse($tasks as $task)
+                <div class="card-premium flex flex-col md:flex-row items-center gap-6 group">
+                    <!-- Status Icon Area -->
+                    <div class="shrink-0">
+                        @if($task->status === 'done')
+                            <div class="w-12 h-12 rounded-2xl bg-success/10 text-success flex items-center justify-center shadow-inner">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        @elseif($task->status === 'in_progress')
+                            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center animate-pulse">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                        @else
+                            <div class="w-12 h-12 rounded-2xl bg-gray-50 text-gray-300 flex items-center justify-center">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Meta & Content -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                {{ $task->project ? $task->project->title : 'Personnel' }}
+                            </span>
+                            @if($task->due_date)
+                                <span class="w-1 h-1 rounded-full bg-gray-300"></span>
+                                <span class="text-[10px] font-bold {{ \Carbon\Carbon::parse($task->due_date)->isPast() && $task->status !== 'done' ? 'text-danger' : 'text-gray-400' }} uppercase tracking-widest">
+                                    {{ \Carbon\Carbon::parse($task->due_date)->format('d M') }}
+                                </span>
+                            @endif
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 group-hover:text-primary transition-colors truncate">
+                            {{ $task->title }}
+                        </h3>
+                    </div>
+
+                    <!-- Actions Area -->
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('tasks.show', $task->id) }}" class="px-5 py-2.5 rounded-xl bg-gray-50 text-gray-700 font-bold text-sm hover:bg-primary/5 hover:text-primary transition-all">
+                            Détails
+                        </a>
+                        <a href="{{ route('tasks.edit', $task->id) }}" class="p-2.5 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                        </a>
+                    </div>
                 </div>
-            </div>
-            
-             <div class="mt-4">
-                {{ $tasks->links() }}
-            </div>
+            @empty
+                <div class="py-20 card-premium flex flex-col items-center justify-center border-dashed">
+                    <div class="w-16 h-16 bg-gray-50 rounded-3xl flex items-center justify-center mb-4 text-gray-300">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                    </div>
+                    <p class="text-gray-500 font-bold uppercase tracking-widest text-xs">Aucune tâche en vue</p>
+                    <a href="{{ route('tasks.create') }}" class="text-primary font-bold text-sm mt-2 hover:underline">Créer une tâche maintenant</a>
+                </div>
+            @endforelse
         </div>
     </div>
 @endsection

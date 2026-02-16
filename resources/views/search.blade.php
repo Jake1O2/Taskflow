@@ -1,102 +1,86 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2 animate-slide-down">
-                Résultats de recherche
-                <span class="text-lg font-normal text-gray-500 ml-2">pour "<span class="font-semibold text-gray-800">{{ $query }}</span>"</span>
-            </h1>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-slide-up">
+        <header>
+            <h1 class="text-3xl font-bold text-gray-900">Résultats pour <span class="text-primary">"{{ request('q') }}"</span></h1>
+            <p class="text-gray-500 font-medium">Nous avons trouvé des correspondances dans vos projets et vos tâches.</p>
+        </header>
 
-            <div class="mb-6 animate-fade" style="animation-delay: 0.1s">
-                <div class="flex space-x-1 bg-white p-1 rounded-lg border border-gray-200 inline-flex">
-                    <a href="{{ route('search', ['q' => $query, 'type' => 'all']) }}" 
-                       class="px-4 py-2 rounded-md text-sm font-medium transition-colors {{ $type === 'all' ? 'bg-blue-100 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-100' }}">
-                        Tout
-                    </a>
-                    <a href="{{ route('search', ['q' => $query, 'type' => 'projects']) }}" 
-                       class="px-4 py-2 rounded-md text-sm font-medium transition-colors {{ $type === 'projects' ? 'bg-indigo-100 text-indigo-700 font-bold' : 'text-gray-600 hover:bg-gray-100' }}">
-                        Projets
-                    </a>
-                    <a href="{{ route('search', ['q' => $query, 'type' => 'tasks']) }}" 
-                       class="px-4 py-2 rounded-md text-sm font-medium transition-colors {{ $type === 'tasks' ? 'bg-green-100 text-green-700 font-bold' : 'text-gray-600 hover:bg-gray-100' }}">
-                        Tâches
-                    </a>
-                </div>
-            </div>
+        <!-- Search Tabs Navigation -->
+        <div class="glass p-1.5 rounded-2xl flex items-center gap-1 w-fit">
+            <button id="tab-projects" class="px-6 py-2 rounded-xl text-sm font-bold bg-white shadow-sm text-gray-900 transition-all">Projets</button>
+            <button id="tab-tasks" class="px-6 py-2 rounded-xl text-sm font-bold text-gray-500 hover:bg-white/50 transition-all">Tâches</button>
+        </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-slide-down" style="animation-delay: 0.2s">
-                <!-- Projets trouvés -->
-                @if($type === 'all' || $type === 'projects')
-                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 h-full">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50">
-                            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                Projets ({{ $projects->count() }})
-                            </h2>
+        <!-- Projects Results Section -->
+        <div id="results-projects" class="space-y-6">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">Projets ({{ count($projects) }})</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                @forelse($projects as $project)
+                    <div class="card-premium group">
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shadow-soft">
+                                {{ substr($project->title, 0, 1) }}
+                            </div>
+                            <h3 class="font-bold text-gray-900 truncate">{{ $project->title }}</h3>
                         </div>
-                        <div class="divide-y divide-gray-100">
-                            @forelse($projects as $project)
-                                <a href="{{ route('projects.show', $project->id) }}" class="block p-4 hover:bg-gray-50 transition-colors duration-200 group">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h3 class="text-sm font-bold text-gray-900 group-hover:text-indigo-600 transition-colors">{{ $project->title }}</h3>
-                                            <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ $project->description }}</p>
-                                        </div>
-                                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600 whitespace-nowrap">
-                                            {{ ucfirst($project->status) }}
-                                        </span>
-                                    </div>
-                                </a>
-                            @empty
-                                <div class="p-8 text-center text-gray-500 italic text-sm">
-                                    Aucun projet trouvé.
-                                </div>
-                            @endforelse
-                        </div>
+                        <p class="text-xs text-gray-500 line-clamp-2 mb-4">{{ $project->description }}</p>
+                        <a href="{{ route('projects.show', $project->id) }}" class="w-full py-2 flex items-center justify-center bg-gray-50 text-gray-700 rounded-xl font-bold text-xs hover:bg-primary hover:text-white transition-all">
+                            Voir le projet
+                        </a>
                     </div>
-                @endif
-
-                <!-- Tâches trouvées -->
-                @if($type === 'all' || $type === 'tasks')
-                    <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 h-full">
-                        <div class="p-6 border-b border-gray-100 bg-gray-50">
-                            <h2 class="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                Tâches ({{ $tasks->count() }})
-                            </h2>
-                        </div>
-                        <div class="divide-y divide-gray-100">
-                            @forelse($tasks as $task)
-                                <a href="{{ route('tasks.show', $task->id) }}" class="block p-4 hover:bg-gray-50 transition-colors duration-200 group">
-                                    <div class="flex justify-between items-start">
-                                        <div>
-                                            <h3 class="text-sm font-bold text-gray-900 group-hover:text-green-600 transition-colors">{{ $task->title }}</h3>
-                                            <div class="flex gap-2 mt-1">
-                                                @if($task->project)
-                                                    <span class="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">{{ $task->project->title }}</span>
-                                                @endif
-                                                <p class="text-xs text-gray-500 line-clamp-1 flex-1">{{ $task->description }}</p>
-                                            </div>
-                                        </div>
-                                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-600 whitespace-nowrap">
-                                            {{ ucfirst($task->status) }}
-                                        </span>
-                                    </div>
-                                </a>
-                            @empty
-                                <div class="p-8 text-center text-gray-500 italic text-sm">
-                                    Aucune tâche trouvée.
-                                </div>
-                            @endforelse
-                        </div>
+                @empty
+                    <div class="col-span-full py-12 card-premium text-center border-dashed">
+                        <p class="text-gray-400 font-medium">Aucun projet trouvé.</p>
                     </div>
-                @endif
+                @endforelse
             </div>
+        </div>
 
-            @if($projects->isEmpty() && $tasks->isEmpty())
-                <div class="mt-8 text-center">
-                    <p class="text-gray-500">Essayez avec d'autres mots-clés.</p>
-                </div>
-            @endif
+        <!-- Tasks Results Section -->
+        <div id="results-tasks" class="hidden space-y-4">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-gray-400 px-1">Tâches ({{ count($tasks) }})</h2>
+            <div class="space-y-3">
+                @forelse($tasks as $task)
+                    <div class="card-premium !p-4 flex items-center justify-between group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-2 h-2 rounded-full {{ $task->status === 'done' ? 'bg-success' : 'bg-gray-300' }}"></div>
+                            <div>
+                                <h4 class="font-bold text-gray-900 group-hover:text-primary transition-colors">{{ $task->title }}</h4>
+                                <p class="text-[10px] text-gray-400 font-bold uppercase">{{ $task->project ? $task->project->title : 'Personnel' }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ route('tasks.show', $task->id) }}" class="p-2 text-gray-400 hover:text-primary transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    </div>
+                @empty
+                    <div class="py-12 card-premium text-center border-dashed">
+                        <p class="text-gray-400 font-medium">Aucune tâche trouvée.</p>
+                    </div>
+                @endforelse
+            </div>
         </div>
     </div>
+
+    <!-- Simple Tab Script -->
+    <script>
+        const btnProj = document.getElementById('tab-projects');
+        const btnTask = document.getElementById('tab-tasks');
+        const resProj = document.getElementById('results-projects');
+        const resTask = document.getElementById('results-tasks');
+
+        function setActive(activeBtn, inactiveBtn, showEl, hideEl) {
+            activeBtn.classList.add('bg-white', 'shadow-sm', 'text-gray-900');
+            activeBtn.classList.remove('text-gray-500', 'hover:bg-white/50');
+            inactiveBtn.classList.remove('bg-white', 'shadow-sm', 'text-gray-900');
+            inactiveBtn.classList.add('text-gray-500', 'hover:bg-white/50');
+            showEl.classList.remove('hidden');
+            hideEl.classList.add('hidden');
+        }
+
+        btnProj.addEventListener('click', () => setActive(btnProj, btnTask, resProj, resTask));
+        btnTask.addEventListener('click', () => setActive(btnTask, btnProj, resTask, resProj));
+    </script>
 @endsection

@@ -1,80 +1,81 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg border border-gray-100 animate-slide-down">
-                <div class="p-8">
-                    <div class="flex justify-between items-center mb-6 border-b pb-4 border-gray-100">
-                        <h1 class="text-3xl font-bold text-gray-900">Modifier le projet</h1>
-                        <span class="text-sm text-gray-400">ID: {{ $project->id }}</span>
-                    </div>
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-slide-up">
+        <header>
+            <h1 class="text-3xl font-bold text-gray-900">Modifier le projet</h1>
+            <p class="text-gray-500 font-medium mt-1">Ajustez les détails de votre projet pour qu'il reste sur la bonne voie.</p>
+        </header>
 
-                    <form action="{{ route('projects.update', $project->id) }}" method="POST" class="space-y-6">
-                        @csrf
-                        @method('PUT')
-
-                        <div>
-                            <label for="title" class="block text-sm font-medium text-gray-700 mb-1">Titre du projet</label>
-                            <x-text-input type="text" name="title" id="title" value="{{ old('title', $project->title) }}" class="w-full" required />
+        <div class="card-premium overflow-hidden">
+            <form action="{{ route('projects.update', $project->id) }}" method="POST" class="space-y-8 p-1">
+                @csrf
+                @method('PUT')
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Title & Team -->
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label for="title" class="text-sm font-bold text-gray-700 ml-1">Titre du projet</label>
+                            <x-text-input type="text" name="title" id="title" value="{{ old('title', $project->title) }}" required />
                             @error('title')
-                                <p class="text-red-500 text-xs mt-1 flex items-center gap-1 animate-shake">{{ $message }}</p>
+                                <p class="text-danger text-xs mt-1 font-semibold">{{ $message }}</p>
                             @enderror
                         </div>
 
-                        <div>
-                            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                            <textarea name="description" id="description" rows="4"
-                                      class="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm transition-all duration-200 focus:scale-[1.01]">{{ old('description', $project->description) }}</textarea>
-                            @error('description')
-                                <p class="text-red-500 text-xs mt-1 flex items-center gap-1 animate-shake">{{ $message }}</p>
-                            @enderror
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="start_date" class="block text-sm font-medium text-gray-700 mb-1">Date de début</label>
-                                <x-text-input type="date" name="start_date" id="start_date" value="{{ old('start_date', $project->start_date) }}" class="w-full" />
-                            </div>
-                            <div>
-                                <label for="end_date" class="block text-sm font-medium text-gray-700 mb-1">Date de fin</label>
-                                <x-text-input type="date" name="end_date" id="end_date" value="{{ old('end_date', $project->end_date) }}" class="w-full" />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Statut</label>
-                            <select name="status" id="status" class="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm transition-all duration-200">
-                                <option value="preparation" {{ $project->status == 'preparation' ? 'selected' : '' }}>En préparation</option>
-                                <option value="in_progress" {{ $project->status == 'in_progress' ? 'selected' : '' }}>En cours</option>
-                                <option value="completed" {{ $project->status == 'completed' ? 'selected' : '' }}>Terminé</option>
+                        <div class="space-y-2">
+                            <label for="team_id" class="text-sm font-bold text-gray-700 ml-1">Équipe (optionnel)</label>
+                            <select name="team_id" id="team_id" class="w-full border-none bg-gray-100/50 focus:bg-white focus:ring-4 focus:ring-primary/10 rounded-2xl py-3 px-4 text-gray-900 text-sm transition-all shadow-inner appearance-none">
+                                <option value="">Projet Personnel</option>
+                                @foreach($teams as $team)
+                                    <option value="{{ $team->id }}" {{ old('team_id', $project->team_id) == $team->id ? 'selected' : '' }}>{{ $team->name }}</option>
+                                @endforeach
                             </select>
                         </div>
-                        
-                         <!-- Team Selection -->
-                        @if($teams->count() > 0)
-                            <div>
-                                <label for="team_id" class="block text-sm font-medium text-gray-700 mb-1">Équipe associée</label>
-                                <select name="team_id" id="team_id" class="w-full border-gray-300 focus:border-blue-500 focus:ring-blue-500 rounded-md shadow-sm transition-all duration-200">
-                                    <option value="">Aucune équipe</option>
-                                    @foreach($teams as $team)
-                                            <option value="{{ $team->id }}" {{ $project->team_id == $team->id ? 'selected' : '' }}>{{ $team->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        @endif
+                    </div>
 
-                        <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
-                            <a href="{{ route('projects.index') }}" class="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">
-                                Annuler
-                            </a>
-                            <x-primary-button>
-                                Mettre à jour
-                            </x-primary-button>
+                    <!-- Status & Date -->
+                    <div class="space-y-6">
+                        <div class="space-y-2">
+                            <label for="status" class="text-sm font-bold text-gray-700 ml-1">Statut actuel</label>
+                            <select name="status" id="status" class="w-full border-none bg-gray-100/50 focus:bg-white focus:ring-4 focus:ring-primary/10 rounded-2xl py-3 px-4 text-gray-900 text-sm transition-all shadow-inner appearance-none">
+                                <option value="preparation" {{ $project->status == 'preparation' ? 'selected' : '' }}>En préparation</option>
+                                <option value="en_cours" {{ $project->status == 'en_cours' ? 'selected' : '' }}>En cours</option>
+                                <option value="termine" {{ $project->status == 'termine' ? 'selected' : '' }}>Terminé</option>
+                            </select>
                         </div>
-                    </form>
+
+                        <div class="space-y-2">
+                            <label for="due_date" class="text-sm font-bold text-gray-700 ml-1">Date d'échéance</label>
+                            <x-text-input type="date" name="due_date" id="due_date" value="{{ old('due_date', $project->due_date ? \Carbon\Carbon::parse($project->due_date)->format('Y-m-d') : '') }}" />
+                        </div>
+                    </div>
+
+                    <!-- Description (Full Width) -->
+                    <div class="md:col-span-2 space-y-2">
+                        <label for="description" class="text-sm font-bold text-gray-700 ml-1">Description du projet</label>
+                        <textarea name="description" id="description" rows="5" class="w-full border-none bg-gray-100/50 focus:bg-white focus:ring-4 focus:ring-primary/10 rounded-2xl py-3 px-4 text-gray-900 placeholder-gray-400 text-sm transition-all shadow-inner">{{ old('description', $project->description) }}</textarea>
+                    </div>
                 </div>
-            </div>
+
+                <div class="flex items-center justify-between pt-8 border-t border-gray-50">
+                    <form action="{{ route('projects.destroy', $project->id) }}" method="POST" onsubmit="return confirm('Attention ! Toutes les tâches associées seront supprimées. Confirmer ?');" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="px-5 py-2.5 text-danger font-bold text-sm hover:bg-danger/5 rounded-2xl transition-colors">
+                            Supprimer le projet
+                        </button>
+                    </form>
+                    <div class="flex items-center gap-4">
+                        <a href="{{ route('projects.show', $project->id) }}" class="px-5 py-2.5 text-gray-500 hover:text-gray-900 font-bold text-sm transition-colors">
+                            Annuler
+                        </a>
+                        <x-primary-button>
+                            Sauvegarder
+                        </x-primary-button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 @endsection
