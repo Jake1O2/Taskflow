@@ -150,7 +150,7 @@
                                     <div class="w-full bg-blue-100/50 rounded-t-lg transition-all duration-300 group-hover:bg-blue-200 relative overflow-hidden" style="height: {{ ($count / $maxActivity) * 100 }}%">
                                         <div class="absolute inset-0 bg-blue-600 rounded-t-lg transition-all duration-700 h-full"></div>
                                     </div>
-                                    <span class="text-[10px] font-black text-gray-400 group-hover:text-blue-600">{{ $day }}</span>
+                                    <span class="text-[10px] font-black text-gray-400 group-hover:text-blue-600">{{ ucfirst(\Carbon\Carbon::parse($day)->isoFormat('ddd')) }}</span>
                                 </div>
                             @endforeach
                         </div>
