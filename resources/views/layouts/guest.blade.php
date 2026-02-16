@@ -12,30 +12,10 @@
         
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased font-sans bg-gray-50 text-gray-900 overflow-hidden">
-        <div class="min-h-screen relative flex items-center justify-center p-4">
-            <!-- Decorative Background Elements -->
-            <div class="fixed inset-0 pointer-events-none -z-10">
-                <div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-blue-100/50 rounded-full blur-[120px]"></div>
-                <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-purple-100/40 rounded-full blur-[120px]"></div>
-            </div>
-
-            <div class="w-full max-w-md animate-slide-up">
-                <div class="flex flex-col items-center mb-10">
-                    <div class="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/20 mb-4 group hover:scale-110 transition-transform">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
-                    </div>
-                    <h1 class="text-3xl font-extrabold text-gray-900 tracking-tight">TaskFlow</h1>
-                    <p class="text-gray-500 font-medium text-sm mt-1">Gérez vos projets avec élégance.</p>
-                </div>
-
-                <div class="card-premium !p-8 backdrop-blur-sm bg-white/80">
-                    @yield('content')
-                </div>
-
-                <div class="mt-8 text-center">
-                    <p class="text-xs text-gray-400 font-medium tracking-widest uppercase">&copy; {{ date('Y') }} TaskFlow. Premium Experience.</p>
-                </div>
+    <body class="antialiased font-sans bg-gradient-to-b from-blue-600 to-purple-700 text-gray-900 min-h-screen">
+        <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
+            <div class="w-full max-w-md">
+                @yield('content')
             </div>
         </div>
     </body>

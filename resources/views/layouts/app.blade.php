@@ -40,7 +40,6 @@
                             <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">Tableau de bord</x-nav-link>
                             <x-nav-link :href="route('projects.index')" :active="request()->routeIs('projects.*')">Projets</x-nav-link>
                             <x-nav-link :href="route('teams.index')" :active="request()->routeIs('teams.*')">Équipes</x-nav-link>
-                            <x-nav-link :href="route('tasks.index')" :active="request()->routeIs('tasks.*')">Tâches</x-nav-link>
                         </div>
                     </div>
 
