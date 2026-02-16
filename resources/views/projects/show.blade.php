@@ -22,7 +22,7 @@
                             {{ $statusLabels[$project->status] ?? $project->status }}
                         </span>
                         <span class="text-xs opacity-60 font-medium">Équipe : {{ $project->team ? $project->team->name : 'Individuel' }}</span>
-                        <span class="text-xs opacity-60 font-medium">Echéance : {{ $project->due_date ? \Carbon\Carbon::parse($project->due_date)->format('d/m/Y') : 'Non définie' }}</span>
+                        <span class="text-xs opacity-60 font-medium">Echéance : {{ $project->due_date ? \Carbon\Carbon::parse($project->due_date)->translatedFormat('j F Y') : 'Non définie' }}</span>
                     </div>
                 </div>
             </div>

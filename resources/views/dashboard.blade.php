@@ -227,7 +227,7 @@
                                             <span class="px-3 py-1 border rounded-lg text-xs font-bold uppercase tracking-widest {{ $statusClasses[$project->status] ?? $statusClasses['preparation'] }}">
                                                 {{ ucfirst(str_replace('_', ' ', $project->status)) }}
                                             </span>
-                                            <p class="text-[10px] text-gray-400 font-bold mt-2">{{ $project->created_at->format('d/m/Y') }}</p>
+                                            <p class="text-[10px] text-gray-400 font-bold mt-2">{{ $project->created_at->translatedFormat('j M Y') }}</p>
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-between border-t border-gray-50 pt-4 mt-4">

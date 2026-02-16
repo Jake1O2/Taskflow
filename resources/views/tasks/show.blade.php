@@ -69,7 +69,7 @@
                             </div>
                             <div>
                                 <span class="block text-[10px] font-bold text-gray-400 uppercase">Échéance</span>
-                                <p class="text-sm font-bold text-gray-900">{{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d F Y') : 'Non définie' }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->translatedFormat('j F Y') : 'Non définie' }}</p>
                             </div>
                         </div>
 
@@ -79,7 +79,7 @@
                             </div>
                             <div>
                                 <span class="block text-[10px] font-bold text-gray-400 uppercase">Créée le</span>
-                                <p class="text-sm font-bold text-gray-900">{{ $task->created_at->format('d/m/Y H:i') }}</p>
+                                <p class="text-sm font-bold text-gray-900">{{ $task->created_at->translatedFormat('j/m/Y H:i') }}</p>
                             </div>
                         </div>
                     </div>
