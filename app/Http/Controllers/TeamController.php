@@ -144,4 +144,22 @@ class TeamController extends Controller
 
         return redirect()->route('teams.show', $teamId)->with('success', 'Membre retiré');
     }
+
+    /**
+     * Helper pour récupérer l'équipe pour l'utilisateur.
+     */
+    private function getTeamForUser(string $id): Team
+    {
+        return $this->currentUser()->teams()->findOrFail($id);
+    }
+
+    /**
+     * Helper pour récupérer l'utilisateur connecté avec le bon type.
+     */
+    private function currentUser(): \App\Models\User
+    {
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        return $user;
+    }
 }
