@@ -121,7 +121,7 @@
                                     <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                     <span class="text-sm font-bold text-gray-600 group-hover:text-gray-900 transition-colors">En cours</span>
                                 </div>
-                                <span class="text-sm font-black text-gray-900">{{ $projectsByStatus['en_cours'] ?? 0 }}</span>
+                                <span class="text-sm font-black text-gray-900">{{ $projectsByStatus['in_progress'] ?? 0 }}</span>
                             </div>
                             <div class="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100 group hover:border-blue-200 transition-colors">
                                 <div class="flex items-center gap-3">
@@ -161,7 +161,7 @@
             <!-- Quick Actions -->
             <div class="mb-12">
                 <h2 class="text-2xl font-bold text-gray-900 mb-6 tracking-tight">Accès rapide</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
                     <a href="{{ route('projects.create') }}" class="group relative overflow-hidden bg-blue-600 rounded-xl p-6 font-bold transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/20 hover:-translate-y-1">
                         <div class="relative z-10 flex items-center justify-between text-white">
                             <span>Nouveau Projet</span>
@@ -178,6 +178,17 @@
                         <div class="flex items-center justify-between text-gray-900">
                             <span class="font-bold">Voir Projets</span>
                             <svg class="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </div>
+                    </a>
+                    <a href="{{ route('projects.index') }}" class="group card-internal p-6 hover:-translate-y-1">
+                        <div class="flex items-center justify-between text-gray-900">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-teal-50 flex items-center justify-center text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-all">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                </div>
+                                <span class="font-bold">Calendrier</span>
+                            </div>
+                            <svg class="w-6 h-6 text-gray-400 group-hover:text-teal-600 transition-colors group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                         </div>
                     </a>
                     <a href="{{ route('teams.index') }}" class="group card-internal p-6 hover:-translate-y-1">
@@ -220,9 +231,14 @@
                                         </div>
                                     </div>
                                     <div class="flex items-center justify-between border-t border-gray-50 pt-4 mt-4">
-                                        <div class="flex items-center gap-2">
-                                            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                                            <span class="text-xs font-bold text-gray-600">{{ $project->tasks_count ?? $project->tasks->count() }} tâches</span>
+                                        <div class="flex items-center gap-4">
+                                            <div class="flex items-center gap-2">
+                                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                                <span class="text-xs font-bold text-gray-600">{{ $project->tasks_count ?? $project->tasks->count() }} tâches</span>
+                                            </div>
+                                            <a href="{{ route('projects.calendar', $project->id) }}" class="flex items-center gap-2 text-gray-400 hover:text-teal-600 transition-colors" title="Calendrier">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </a>
                                         </div>
                                         <a href="{{ route('projects.show', $project->id) }}" class="text-blue-600 hover:text-blue-800 text-sm font-bold flex items-center gap-1 group/link transition-colors">
                                             Accéder
@@ -295,9 +311,6 @@
                     @endif
                 </div>
             </div>
-        </div>
-    </div>
-@endsection
         </div>
     </div>
 @endsection

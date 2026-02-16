@@ -169,10 +169,10 @@
     padding: 10px 16px;
     border-radius: 8px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-@utility btn-secondary:hover {
-    background-color: #e5e7eb;
+    &:hover {
+        background-color: #e5e7eb;
+    }
 }
 
 @utility badge-red {
@@ -186,11 +186,11 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     padding: 24px;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
 
-@utility card-internal:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-2px);
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateY(-2px);
+    }
 }
 
 @layer base {

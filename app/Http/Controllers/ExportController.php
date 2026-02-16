@@ -4,13 +4,27 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
+use App\Models\Project;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ExportController extends Controller
 {
     public function exportProjectPDF(string $projectId)
     {
-        $project = Auth::user()->projects()->with('tasks')->findOrFail($projectId);
+        $user = Auth::user();
+
+        // Récupérer les IDs des équipes (propriétaire ou membre)
+        $teamIds = $user->teams()->pluck('id')
+            ->merge($user->teamMemberships()->pluck('teams.id'))
+            ->unique();
+
+        $project = Project::with('tasks')
+            ->where('id', $projectId)
+            ->where(function ($query) use ($user, $teamIds) {
+                $query->where('created_by', $user->id)
+                      ->orWhereIn('team_id', $teamIds);
+            })
+            ->firstOrFail();
         
         // Suppose une vue 'exports.project_pdf' existe
         $pdf = Pdf::loadView('exports.project_pdf', compact('project'));

@@ -87,7 +87,7 @@ class User extends Authenticatable
      */
     public function unreadNotifications()
     {
-        return $this->notifications()->where('read_at', null)->get();
+        return $this->notifications()->whereNull('read_at');
     }
 
     /**
