@@ -73,7 +73,7 @@
                                 <div class="w-2 h-8 rounded-full {{ $task->status === 'done' ? 'bg-success' : 'bg-gray-200' }}"></div>
                                 <div class="flex-1 min-w-0">
                                     <h4 class="font-bold text-gray-900 {{ $task->status === 'done' ? 'line-through opacity-50' : '' }}">{{ $task->title }}</h4>
-                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->format('d/m/Y') : 'Pas de date' }}</p>
+                                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{{ $task->due_date ? \Carbon\Carbon::parse($task->due_date)->translatedFormat('j/m/Y') : 'Pas de date' }}</p>
                                 </div>
                                 <a href="{{ route('tasks.show', $task->id) }}" class="p-2 text-gray-400 hover:text-primary transition-colors">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
@@ -95,7 +95,7 @@
                     <div class="space-y-4">
                         <div>
                             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Créé le</span>
-                            <p class="text-sm font-bold text-gray-900">{{ $project->created_at->format('d F Y') }}</p>
+                            <p class="text-sm font-bold text-gray-900">{{ $project->created_at->translatedFormat('j F Y') }}</p>
                         </div>
                         <div>
                             <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Responsable</span>
