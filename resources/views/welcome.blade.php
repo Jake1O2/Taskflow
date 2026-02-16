@@ -6,7 +6,7 @@
         <div class="absolute inset-0 grain-texture pointer-events-none"></div>
 
         <div class="relative z-10">
-            <div class="flex flex-col items-center mb-10 translate-y-6 animate-slide-in-up" style="animation-delay: 150ms; animation-fill-mode: both;">
+            <div class="flex flex-col items-center mb-10 translate-y-6 animate-slide-up" style="animation-delay: 150ms; animation-fill-mode: both;">
                 {{-- Futuristic Brand Mark --}}
                 <div class="relative w-24 h-24 mb-10">
                     <div class="absolute inset-0 bg-blue-600/30 rounded-[32px] blur-3xl animate-pulse"></div>
@@ -25,7 +25,7 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 gap-5 pt-8 translate-y-6 animate-slide-in-up" style="animation-delay: 400ms; animation-fill-mode: both;">
+            <div class="grid grid-cols-1 gap-5 pt-8 translate-y-6 animate-slide-up" style="animation-delay: 400ms; animation-fill-mode: both;">
                 <a href="{{ route('login') }}" 
                     class="relative group overflow-hidden bg-blue-600 rounded-[24px] py-5 px-8 transition-all duration-500 active:scale-[0.97] shadow-2xl shadow-blue-500/40">
                     {{-- Shimmer Effect --}}
@@ -46,7 +46,7 @@
                 </a>
             </div>
 
-            <div class="mt-12 pt-8 border-t border-white/5 opacity-50 translate-y-6 animate-slide-in-up" style="animation-delay: 600ms; animation-fill-mode: both;">
+            <div class="mt-12 pt-8 border-t border-white/5 opacity-50 translate-y-6 animate-slide-up" style="animation-delay: 600ms; animation-fill-mode: both;">
                 <p class="text-[13px] font-bold text-gray-500 tracking-widest uppercase">
                     Propulsé par <span class="text-blue-500/80">TaskFlow Engine v4.0</span>
                 </p>

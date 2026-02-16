@@ -6,7 +6,7 @@
         <div class="absolute inset-0 grain-texture pointer-events-none"></div>
 
         <div class="relative z-10">
-            <div class="flex flex-col items-center mb-10 translate-y-6 animate-slide-in-up" style="animation-delay: 150ms; animation-fill-mode: both;">
+            <div class="flex flex-col items-center mb-10 translate-y-6 animate-slide-up" style="animation-delay: 150ms; animation-fill-mode: both;">
                 {{-- Futuristic Logo Icon --}}
                 <div class="relative w-16 h-16 mb-6">
                     <div class="absolute inset-0 bg-blue-600/30 rounded-3xl blur-2xl animate-pulse"></div>
@@ -39,7 +39,7 @@
             <form method="POST" action="{{ route('register') }}" class="space-y-6">
                 @csrf
 
-                <div class="translate-y-6 animate-slide-in-up" style="animation-delay: 300ms; animation-fill-mode: both;">
+                <div class="translate-y-6 animate-slide-up" style="animation-delay: 300ms; animation-fill-mode: both;">
                     <label for="name" class="block text-[13px] font-bold text-gray-300 mb-2 ml-2 tracking-wide uppercase opacity-70">Identité</label>
                     <div class="relative group">
                         <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-500"></div>
@@ -54,7 +54,7 @@
                     </div>
                 </div>
 
-                <div class="translate-y-6 animate-slide-in-up" style="animation-delay: 400ms; animation-fill-mode: both;">
+                <div class="translate-y-6 animate-slide-up" style="animation-delay: 400ms; animation-fill-mode: both;">
                     <label for="email" class="block text-[13px] font-bold text-gray-300 mb-2 ml-2 tracking-wide uppercase opacity-70">Adresse Email</label>
                     <div class="relative group">
                         <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-500"></div>

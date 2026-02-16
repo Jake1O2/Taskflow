@@ -6,7 +6,7 @@
         <div class="absolute inset-0 grain-texture pointer-events-none"></div>
 
         <div class="relative z-10">
-            <div class="flex flex-col items-center mb-12 translate-y-6 animate-slide-in-up" style="animation-delay: 150ms; animation-fill-mode: both;">
+            <div class="flex flex-col items-center mb-12 translate-y-6 animate-slide-up" style="animation-delay: 150ms; animation-fill-mode: both;">
                 {{-- Futuristic Logo Icon --}}
                 <div class="relative w-20 h-20 mb-8">
                     <div class="absolute inset-0 bg-blue-600/30 rounded-3xl blur-2xl animate-pulse"></div>
@@ -39,7 +39,7 @@
             <form method="POST" action="{{ route('login') }}" class="space-y-8">
                 @csrf
 
-                <div class="translate-y-6 animate-slide-in-up" style="animation-delay: 300ms; animation-fill-mode: both;">
+                <div class="translate-y-6 animate-slide-up" style="animation-delay: 300ms; animation-fill-mode: both;">
                     <label for="email" class="block text-[14px] font-bold text-gray-300 mb-3 ml-2 tracking-wide uppercase opacity-70">Adresse Email</label>
                     <div class="relative group">
                         <div class="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur opacity-0 group-focus-within:opacity-20 transition duration-500"></div>
@@ -54,7 +54,7 @@
                     </div>
                 </div>
 
-                <div class="translate-y-6 animate-slide-in-up" style="animation-delay: 450ms; animation-fill-mode: both;">
+                <div class="translate-y-6 animate-slide-up" style="animation-delay: 450ms; animation-fill-mode: both;">
                     <div class="flex justify-between items-center mb-3 ml-2">
                         <label for="password" class="block text-[14px] font-bold text-gray-300 tracking-wide uppercase opacity-70">Mot de passe</label>
                     </div>
@@ -71,7 +71,7 @@
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between translate-y-6 animate-slide-in-up" style="animation-delay: 600ms; animation-fill-mode: both;">
+                <div class="flex items-center justify-between translate-y-6 animate-slide-up" style="animation-delay: 600ms; animation-fill-mode: both;">
                     <label class="flex items-center cursor-pointer select-none group">
                         <div class="relative w-6 h-6">
                             <input type="checkbox" name="remember" class="peer absolute inset-0 opacity-0 cursor-pointer z-10">
@@ -83,7 +83,7 @@
                     </label>
                 </div>
 
-                <div class="pt-6 translate-y-6 animate-slide-in-up" style="animation-delay: 750ms; animation-fill-mode: both;">
+                <div class="pt-6 translate-y-6 animate-slide-up" style="animation-delay: 750ms; animation-fill-mode: both;">
                     <button type="submit" 
                         class="w-full relative group overflow-hidden bg-blue-600 rounded-[20px] py-5 px-8 transition-all duration-500 active:scale-[0.97] shadow-2xl shadow-blue-500/40">
                         {{-- Shimmer Effect --}}
@@ -96,7 +96,7 @@
                     </button>
                 </div>
 
-                <div class="text-center pt-10 translate-y-6 animate-slide-in-up" style="animation-delay: 900ms; animation-fill-mode: both;">
+                <div class="text-center pt-10 translate-y-6 animate-slide-up" style="animation-delay: 900ms; animation-fill-mode: both;">
                     <p class="text-[16px] font-bold text-gray-500 tracking-tight">
                         Pas encore membre ? 
                         <a href="{{ route('register') }}" class="text-white hover:text-blue-400 transition-all duration-300 relative group">
