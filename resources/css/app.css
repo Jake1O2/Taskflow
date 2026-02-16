@@ -6,7 +6,7 @@
 @source '../**/*.js';
 
 @theme {
-    /* 1. Colors - Defined as Tailwind colors */
+    /* 1. Colors - Unified Palette */
     --color-primary: #2563eb;
     --color-primary-dark: #1e40af;
     --color-primary-light: #3b82f6;
@@ -14,24 +14,35 @@
     --color-danger: #dc2626;
     --color-warning: #d97706;
 
+    /* Ultimate Palette */
+    --color-midnight: #020617;
+    --color-midnight-light: #0f172a;
+    --color-electric: #2563eb;
+    --color-cyan-vibrant: #06b6d4;
+
+    /* Professional Gray Scale */
     --color-gray-50: #f9fafb;
     --color-gray-100: #f3f4f6;
     --color-gray-200: #e5e7eb;
     --color-gray-300: #d1d5db;
+    --color-gray-500: #6b7280;
     --color-gray-700: #374151;
     --color-gray-900: #111827;
 
     /* 2. Typography */
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Outfit', 'Inter', sans-serif;
 
-    /* 3. Shadow System - Premium Layered Shadows */
+    /* 3. Shadow System - Unified */
     --shadow-premium: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
     --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --shadow-ultimate: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 40px rgba(37, 99, 235, 0.1);
 
     /* 4. Animations */
     --animate-fade-in: fadeIn 0.4s ease-out;
     --animate-slide-up: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     --animate-float: float 3s ease-in-out infinite;
+    --animate-shimmer: shimmer 2.5s infinite linear;
     --animate-pulse-custom: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 
     @keyframes fadeIn {
@@ -67,9 +78,83 @@
             transform: translateY(-5px);
         }
     }
+
+    @keyframes shimmer {
+        from {
+            background-position: -200% 0;
+        }
+
+        to {
+            background-position: 200% 0;
+        }
+    }
+
+    @keyframes pulse {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
 }
 
-/* Custom Utilities */
+/* --- Ultimate Brand Utilities --- */
+@utility bg-mesh-ultimate {
+    background-color: #020617;
+    background-image:
+        radial-gradient(at 0% 0%, hsla(222, 47%, 11%, 1) 0, transparent 50%),
+        radial-gradient(at 50% 0%, hsla(221, 83%, 53%, 0.15) 0, transparent 50%),
+        radial-gradient(at 100% 0%, hsla(263, 70%, 50%, 0.15) 0, transparent 50%),
+        radial-gradient(at 0% 50%, hsla(221, 83%, 53%, 0.1) 0, transparent 50%),
+        radial-gradient(at 100% 50%, hsla(180, 100%, 50%, 0.05) 0, transparent 50%),
+        radial-gradient(at 50% 100%, hsla(222, 47%, 11%, 1) 0, transparent 50%);
+    background-size: 200% 200%;
+    animation: mesh-move 20s ease infinite;
+}
+
+@keyframes mesh-move {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+@utility glass-premium {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-ultimate);
+}
+
+@utility grain-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    opacity: 0.05;
+}
+
+@utility text-gradient-electric {
+    background: linear-gradient(135deg, #60a5fa 0%, #2563eb 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* --- Professional App Utilities --- */
 @utility glass {
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(12px);
@@ -77,21 +162,43 @@
     border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-@utility glass-dark {
-    background: rgba(17, 24, 39, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+@utility btn-secondary {
+    background-color: #f3f4f6;
+    color: #374151;
+    font-weight: 700;
+    padding: 10px 16px;
+    border-radius: 8px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Base Styles */
+@utility btn-secondary:hover {
+    background-color: #e5e7eb;
+}
+
+@utility badge-red {
+    @apply absolute -top-1 -right-1 bg-red-600 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full border-2 border-white shadow-sm;
+}
+
+@utility card-internal {
+    background-color: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@utility card-internal:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
 @layer base {
     body {
-        @apply bg-gray-50 text-gray-900 selection:bg-blue-100;
+        @apply text-gray-900 selection:bg-blue-100;
         font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     }
 
-    /* Targeted transitions only - Avoid global * transition */
     a,
     button,
     input,
@@ -115,7 +222,7 @@
     @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
 }
 
-/* Premium Card Base */
+/* Existing Card Legacy Support */
 @utility card-premium {
     @apply bg-white rounded-3xl border border-gray-100 shadow-premium p-6 hover:shadow-xl hover:-translate-y-1 transition-all duration-300;
 }

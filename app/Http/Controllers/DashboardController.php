@@ -23,11 +23,16 @@ class DashboardController extends Controller
             'teams' => Auth::user()->teams()->count(),
         ];
         
+        // Task Completion Rate pour affichage
+        $totalTasks = Task::whereIn('project_id', $projectIds)->count();
+        $completedTasks = Task::whereIn('project_id', $projectIds)->where('status', 'done')->count();
+        $completionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
+        
         $recentProjects = Auth::user()->projects()->orderBy('created_at', 'desc')->limit(5)->get();
         
         $recentTasks = Task::whereIn('project_id', $projectIds)->orderBy('created_at', 'desc')->limit(5)->get();
         
-        return view('dashboard', compact('stats', 'recentProjects', 'recentTasks'));
+        return view('dashboard', compact('stats', 'recentProjects', 'recentTasks', 'completionRate', 'totalTasks', 'completedTasks'));
     }
 
     /**
