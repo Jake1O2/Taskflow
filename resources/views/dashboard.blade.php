@@ -14,59 +14,129 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
             
             <!-- Statistics Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <!-- Projects Card -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div class="card-internal bg-white flex flex-col justify-between">
                     <div class="flex items-start justify-between">
                         <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Projets</p>
-                            <p class="text-4xl font-bold text-gray-900">{{ $stats['projects'] }}</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1">Projets</p>
+                            <p class="text-4xl font-bold text-gray-900 leading-none">{{ $stats['projects'] }}</p>
                         </div>
-                        <div class="bg-blue-100 text-blue-600 rounded-lg p-3">
+                        <div class="bg-blue-50 text-blue-600 rounded-xl p-3 border border-blue-100 shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                             </svg>
                         </div>
                     </div>
-                    <p class="text-gray-500 text-xs mt-4">
-                        <a href="{{ route('projects.index') }}" class="text-blue-600 hover:text-blue-700 font-medium">Voir tous</a>
-                    </p>
+                    <div class="mt-4 pt-4 border-t border-gray-50">
+                        <a href="{{ route('projects.index') }}" class="text-blue-600 hover:text-blue-700 text-xs font-bold inline-flex items-center gap-1 group">
+                            Voir tous les projets
+                            <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Tasks Card -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div class="card-internal bg-white flex flex-col justify-between">
                     <div class="flex items-start justify-between">
                         <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Tâches</p>
-                            <p class="text-4xl font-bold text-gray-900">{{ $stats['tasks'] }}</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1">Tâches</p>
+                            <p class="text-4xl font-bold text-gray-900 leading-none">{{ $stats['tasks'] }}</p>
                         </div>
-                        <div class="bg-emerald-100 text-emerald-600 rounded-lg p-3">
+                        <div class="bg-emerald-50 text-emerald-600 rounded-xl p-3 border border-emerald-100 shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                         </div>
                     </div>
-                    <p class="text-gray-500 text-xs mt-4">
-                        <span class="text-emerald-600 font-medium">À compléter</span>
-                    </p>
+                    <div class="mt-4 pt-4 border-t border-gray-50">
+                        <span class="text-emerald-600 text-xs font-bold">{{ $completedTasks }} terminées</span>
+                    </div>
                 </div>
 
                 <!-- Teams Card -->
-                <div class="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow duration-200">
+                <div class="card-internal bg-white flex flex-col justify-between">
                     <div class="flex items-start justify-between">
                         <div>
-                            <p class="text-gray-600 text-sm font-medium mb-1">Équipes</p>
-                            <p class="text-4xl font-bold text-gray-900">{{ $stats['teams'] }}</p>
+                            <p class="text-gray-500 text-sm font-medium mb-1">Équipes</p>
+                            <p class="text-4xl font-bold text-gray-900 leading-none">{{ $stats['teams'] }}</p>
                         </div>
-                        <div class="bg-purple-100 text-purple-600 rounded-lg p-3">
+                        <div class="bg-purple-50 text-purple-600 rounded-xl p-3 border border-purple-100 shadow-sm">
                             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 8.646 4 4 0 010-8.646M3 20.394A9 9 0 0115 3c4.97 0 9 3.582 9 8s-4.03 8-9 8c-4.6 0-8.56-3.124-9-7.606z" />
                             </svg>
                         </div>
                     </div>
-                    <p class="text-gray-500 text-xs mt-4">
-                        <a href="{{ route('teams.index') }}" class="text-purple-600 hover:text-purple-700 font-medium">Gérer</a>
-                    </p>
+                    <div class="mt-4 pt-4 border-t border-gray-50">
+                        <a href="{{ route('teams.index') }}" class="text-purple-600 hover:text-purple-700 text-xs font-bold inline-flex items-center gap-1 group">
+                            Gérer les équipes
+                            <svg class="w-3 h-3 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div class="card-internal bg-white p-8 mb-12">
+                <h2 class="text-[20px] font-bold text-gray-900 mb-8 tracking-tight">Activité</h2>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                    {{-- 1. Taux de complétion --}}
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">Taux de complétion</h3>
+                        <div class="flex flex-col items-center justify-center h-40">
+                            <div class="w-full bg-gray-100 rounded-full h-4 mb-4 overflow-hidden relative">
+                                <div class="bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out" style="width: {{ $taskCompletionRate }}%"></div>
+                            </div>
+                            <p class="text-2xl font-bold text-gray-900">{{ $taskCompletionRate }}% <span class="text-sm text-gray-500 font-medium">complétées</span></p>
+                            <p class="text-xs text-gray-500 mt-2 font-medium">{{ $completedTasks }} tâches / {{ $totalTasks }} total</p>
+                        </div>
+                    </div>
+
+                    {{-- 2. Projets par statut --}}
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">Projets par statut</h3>
+                        <div class="space-y-4 pt-2">
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-gray-400"></div>
+                                    <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">Préparation</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-900">{{ $projectsByStatus['preparation'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">En cours</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-900">{{ $projectsByStatus['en_cours'] ?? 0 }}</span>
+                            </div>
+                            <div class="flex items-center justify-between group">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                    <span class="text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors">Complété</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-900">{{ $projectsByStatus['completed'] ?? 0 }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- 3. Activité Hebdomadaire --}}
+                    <div>
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6 border-b border-gray-50 pb-2">Dernière semaine</h3>
+                        <div class="h-40 flex items-end justify-between gap-2 px-2">
+                            @php $maxActivity = max(array_merge([1], array_values($activityData))); @endphp
+                            @foreach($activityData as $day => $count)
+                                <div class="flex-1 flex flex-col items-center gap-2 group">
+                                    <div class="relative w-full">
+                                        <div class="absolute bottom-0 left-0 right-0 bg-blue-100 rounded-t-sm transition-all duration-500 group-hover:bg-blue-200" style="height: {{ ($count / $maxActivity) * 100 }}%"></div>
+                                        <div class="bg-blue-600 rounded-t-sm transition-all duration-700 peer h-0 overflow-hidden" style="height: {{ ($count / $maxActivity) * 100 }}%"></div>
+                                    </div>
+                                    <span class="text-[10px] font-bold text-gray-400 group-hover:text-blue-600 transition-colors">{{ $day }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
                 </div>
             </div>
 

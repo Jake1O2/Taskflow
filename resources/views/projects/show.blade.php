@@ -33,6 +33,19 @@
                 <a href="{{ route('projects.calendar', $project->id) }}" class="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-sm transition-all border border-white/10">
                     Calendrier
                 </a>
+                
+                {{-- Export Buttons --}}
+                <div class="flex gap-2">
+                    <a href="{{ route('projects.export.pdf', $project->id) }}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-[12px] px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.707 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                        Exporter PDF
+                    </a>
+                    <a href="{{ route('projects.export.csv', $project->id) }}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-[12px] px-4 py-2.5 text-sm font-bold flex items-center gap-2 transition-all duration-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 00-2 2v1M9 3h6m-6 4h6m2 10H7a2 2 0 00-2 2v1"></path></svg>
+                        Exporter CSV
+                    </a>
+                </div>
+
                 <a href="{{ route('projects.edit', $project->id) }}" class="p-2.5 bg-white/5 hover:bg-white/10 text-white rounded-2xl transition-all border border-white/10">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                 </a>

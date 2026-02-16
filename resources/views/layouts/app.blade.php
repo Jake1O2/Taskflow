@@ -57,6 +57,23 @@
                             </form>
                         </div>
 
+                        <!-- Notifications Bell -->
+                        <div class="relative group mr-2">
+                            <a href="{{ route('notifications.index') }}" class="p-2 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200 flex items-center justify-center relative">
+                                <svg class="w-6 h-6 group-hover:rotate-12 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                                </svg>
+                                
+                                {{-- Notification Badge --}}
+                                @php $unreadCount = Auth::user()->unreadNotifications->count(); @endphp
+                                @if($unreadCount > 0)
+                                    <span class="badge-red animate-pulse-custom">
+                                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+                                    </span>
+                                @endif
+                            </a>
+                        </div>
+
                         <!-- Profile Dropdown (Simplified for layout demo) -->
                         <div class="flex items-center gap-3 pl-4 border-l border-gray-200/50">
                             <span class="hidden lg:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>

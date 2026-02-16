@@ -75,6 +75,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the notifications for the user.
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Get unread notifications.
+     */
+    public function unreadNotifications()
+    {
+        return $this->notifications()->where('read_at', null)->get();
+    }
+
+    /**
      * Stats (projects, tasks, teams) avec cache pour limiter les requêtes.
      */
     public function getCachedStats(int $ttlSeconds = 120): array

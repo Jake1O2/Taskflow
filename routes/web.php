@@ -3,6 +3,8 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\TaskController;
@@ -28,6 +30,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class , 'logout'])->name('logout');
     Route::get('/profile', [ProfileController::class , 'show'])->name('profile');
     Route::get('/dashboard', [DashboardController::class , 'index'])->name('dashboard');
+
+    // Routes Notifications
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.readAll');
 
     // Route de recherche globale
     Route::get('/search', function (Request $request) {
@@ -63,6 +70,10 @@ Route::middleware('auth')->group(function () {
     Route::put('/projects/{id}', [ProjectController::class , 'update'])->name('projects.update');
     Route::delete('/projects/{id}', [ProjectController::class , 'destroy'])->name('projects.destroy');
     Route::get('/search/projects', [ProjectController::class, 'search'])->name('projects.search');
+    
+    // Routes Export
+    Route::get('/projects/{id}/export/pdf', [ExportController::class, 'exportProjectPDF'])->name('projects.export.pdf');
+    Route::get('/projects/{id}/export/csv', [ExportController::class, 'exportTasksCSV'])->name('projects.export.csv');
 
     // Routes pour les tâches
     Route::get('/projects/{projectId}/tasks/create', [TaskController::class , 'create'])->name('tasks.create');
@@ -85,6 +96,7 @@ Route::middleware('auth')->group(function () {
     // API JSON pour animations (middleware auth)
     Route::prefix('api')->middleware('auth')->group(function () {
         Route::get('/stats', [ProjectController::class, 'getStats'])->name('api.stats');
+        Route::get('/dashboard/analytics', [DashboardController::class, 'getAnalytics'])->name('api.dashboard.analytics');
         Route::patch('/tasks/{id}/status', [TaskController::class, 'updateStatus'])->name('api.tasks.updateStatus');
     });
 });
