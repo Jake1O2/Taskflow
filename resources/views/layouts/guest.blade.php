@@ -12,7 +12,13 @@
         
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased font-sans bg-gradient-to-b from-blue-600 to-purple-700 text-gray-900 min-h-screen">
+    <body class="antialiased font-sans bg-mesh min-h-screen relative overflow-x-hidden">
+        <!-- Floating Decorative Blobs -->
+        <div class="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+            <div class="absolute top-[10%] left-[5%] w-[300px] h-[300px] bg-blue-500/20 rounded-full blur-[80px] animate-float" style="animation-duration: 4s;"></div>
+            <div class="absolute bottom-[20%] right-[10%] w-[250px] h-[250px] bg-purple-500/20 rounded-full blur-[80px] animate-float" style="animation-duration: 6s;"></div>
+        </div>
+
         <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
             <div class="w-full max-w-md">
                 @yield('content')
