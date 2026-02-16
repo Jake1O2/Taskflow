@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -37,6 +38,14 @@ class TaskController extends Controller
 
         $project->tasks()->create($validated);
         $this->currentUser()->forgetStatsCache();
+
+        NotificationHelper::createNotification(
+            Auth::id(),
+            'task_assigned',
+            "Tâche créée",
+            "Une nouvelle tâche a été créée",
+            route('projects.show', $projectId)
+        );
 
         return redirect()->route('projects.show', $projectId)->with('success', 'Tâche créée');
     }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Comment;
+use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +22,17 @@ class CommentController extends Controller
             'user_id' => Auth::id(),
             'content' => $request->content,
         ]);
+
+        $task = Task::with('project')->findOrFail($taskId);
+        // Notifier le créateur du projet (propriétaire)
+        NotificationHelper::createNotification(
+            $task->project->created_by,
+            'comment_added',
+            "Nouveau commentaire",
+            "Quelqu'un a commenté votre tâche",
+            route('tasks.show', $taskId)
+        );
+
         return redirect(route('tasks.show', $taskId))->with('success', 'Commentaire ajouté');
     }
 

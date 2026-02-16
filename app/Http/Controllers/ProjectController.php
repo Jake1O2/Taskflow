@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +34,8 @@ class ProjectController extends Controller
      */
     public function create(): View
     {
-        return view('projects.create');
+        $teams = Auth::user()->teams()->get();
+        return view('projects.create', compact('teams'));
     }
 
     /**
@@ -51,6 +53,14 @@ class ProjectController extends Controller
 
         $project = $this->currentUser()->projects()->create($validated);
         $this->currentUser()->forgetStatsCache();
+
+        NotificationHelper::createNotification(
+            Auth::id(),
+            'project_shared',
+            "Projet créé",
+            "Un nouveau projet a été créé",
+            route('projects.show', $project->id)
+        );
 
         return redirect()->route('projects.show', $project->id)->with('success', 'Projet créé');
     }

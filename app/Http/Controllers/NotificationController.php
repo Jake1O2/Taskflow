@@ -13,7 +13,7 @@ class NotificationController extends Controller
      */
     public function index(): View
     {
-        $notifications = Auth::user()->notifications()->orderBy('created_at', 'desc')->get();
+        $notifications = Auth::user()->notifications()->orderBy('created_at', 'desc')->paginate(20);
         return view('notifications.index', compact('notifications'));
     }
 
@@ -22,13 +22,13 @@ class NotificationController extends Controller
         $notification = Auth::user()->notifications()->findOrFail($id);
         $notification->update(['read_at' => now()]);
 
-        return back()->with('success', 'Notifications marquées');
+        return back()->with('success', 'Notification marquée comme lue');
     }
 
     public function markAllAsRead(): RedirectResponse
     {
         Auth::user()->notifications()->unread()->update(['read_at' => now()]);
 
-        return back()->with('success', 'Notifications marquées');
+        return back()->with('success', 'Toutes les notifications marquées');
     }
 }

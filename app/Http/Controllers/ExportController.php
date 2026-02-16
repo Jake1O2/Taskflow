@@ -27,9 +27,11 @@ class ExportController extends Controller
             ->firstOrFail();
         
         // Suppose une vue 'exports.project_pdf' existe
-        $pdf = Pdf::loadView('exports.project_pdf', compact('project'));
+        $pdf = Pdf::loadView('exports.project_pdf', compact('project'))
+            ->setPaper('a4', 'portrait')
+            ->setWarnings(false);
         
-        return $pdf->download("project-{$project->id}.pdf");
+        return $pdf->download("project-{$project->id}.pdf")->with('success', 'PDF généré et téléchargé');
     }
 
     public function exportTasksCSV(string $projectId): StreamedResponse
@@ -39,19 +41,23 @@ class ExportController extends Controller
 
         return response()->streamDownload(function () use ($tasks) {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['ID', 'Titre', 'Description', 'Statut', 'Priorité', 'Date d\'échéance']);
+            
+            // BOM pour UTF-8 Excel
+            fputs($handle, "\xEF\xBB\xBF");
+            
+            fputcsv($handle, ['Titre', 'Status', 'Échéance', 'Description']);
 
             foreach ($tasks as $task) {
                 fputcsv($handle, [
-                    $task->id,
                     $task->title,
-                    $task->description,
                     $task->status,
-                    $task->priority ?? 'normal',
                     $task->due_date?->format('Y-m-d') ?? 'N/A',
+                    $task->description,
                 ]);
             }
             fclose($handle);
-        }, "tasks-project-{$project->id}.csv");
+        }, "tasks-project-{$project->id}.csv", [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+        ]);
     }
 }

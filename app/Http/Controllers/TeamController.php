@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\NotificationHelper;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
@@ -118,6 +119,14 @@ class TeamController extends Controller
             'user_id' => $user->id,
             'role' => 'member',
         ]);
+
+        NotificationHelper::createNotification(
+            $user->id,
+            'member_invited',
+            "Invitation d'équipe",
+            "Vous avez été ajouté à une équipe",
+            route('teams.show', $teamId)
+        );
 
         return redirect()->route('teams.show', $teamId)->with('success', 'Membre ajouté');
     }
