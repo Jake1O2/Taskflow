@@ -31,8 +31,10 @@
             {{-- Grille Calendrier --}}
             <div class="grid grid-cols-7 bg-gray-50">
                 {{-- En-têtes Jours --}}
-                @foreach(['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'] as $dayName)
-                    <div class="py-4 text-center font-extrabold text-gray-400 uppercase text-[10px] tracking-widest border-b border-gray-100">{{ $dayName }}</div>
+                @foreach(['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $dayCode)
+                    <div class="py-4 text-center font-extrabold text-gray-400 uppercase text-[10px] tracking-widest border-b border-gray-100">
+                        {{ \Carbon\Carbon::parse($dayCode)->minDayName }}
+                    </div>
                 @endforeach
 
                 {{-- Cases vides début de mois --}}
