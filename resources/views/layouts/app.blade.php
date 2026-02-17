@@ -75,15 +75,49 @@
                             </a>
                         </div>
 
-                        <!-- Profile Dropdown (Simplified for layout demo) -->
-                        <div class="flex items-center gap-3 pl-4 border-l border-gray-200/50">
-                            <span class="hidden lg:block text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="p-2 text-gray-500 hover:text-danger hover:bg-danger/5 rounded-xl transition-colors">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                                </button>
-                            </form>
+                        <!-- Profile Dropdown -->
+                        <div class="relative" id="profile-dropdown">
+                            <button type="button" class="flex items-center gap-3 pl-4 border-l border-gray-200/50 group focus:outline-none" id="profile-button">
+                                <span class="hidden lg:block text-sm font-bold text-gray-700 group-hover:text-primary transition-colors">{{ Auth::user()->name }}</span>
+                                <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary font-bold text-xs group-hover:bg-primary group-hover:text-white transition-all">
+                                    {{ strtoupper(substr(Auth::user()->name, 0, 1)) }}
+                                </div>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div class="hidden absolute right-0 mt-3 w-56 bg-white border border-gray-100 rounded-2xl shadow-xl z-[60] py-2 animate-slide-up" id="dropdown-menu">
+                                <div class="px-4 py-2 border-b border-gray-50 mb-1">
+                                    <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Compte</p>
+                                    <p class="text-sm font-bold text-gray-900 truncate">{{ Auth::user()->email }}</p>
+                                </div>
+                                
+                                <a href="{{ route('profile') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                    Mon compte
+                                </a>
+                                <a href="{{ route('billing.index') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                    Facturation
+                                </a>
+                                <a href="{{ route('api.tokens.index') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path></svg>
+                                    Tokens API
+                                </a>
+                                <a href="{{ route('webhooks.index') }}" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-primary transition-colors">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    Webhooks
+                                </a>
+
+                                <div class="h-px bg-gray-50 my-2"></div>
+                                
+                                <form method="POST" action="{{ route('logout') }}">
+                                    @csrf
+                                    <button type="submit" class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors text-left font-bold">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                        Déconnexion
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -103,5 +137,28 @@
                 </div>
             </footer>
         </div>
+
+        <!-- Dropdown Script -->
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const button = document.getElementById('profile-button');
+                const menu = document.getElementById('dropdown-menu');
+
+                if (button && menu) {
+                    button.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        menu.classList.toggle('hidden');
+                    });
+
+                    document.addEventListener('click', () => {
+                        menu.classList.add('hidden');
+                    });
+
+                    menu.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                    });
+                }
+            });
+        </script>
     </body>
 </html>

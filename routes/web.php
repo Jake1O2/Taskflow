@@ -11,6 +11,8 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\ApiTokenController;
+use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
@@ -42,6 +44,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/billing', [BillingController::class , 'index'])->name('billing.index');
     Route::post('/billing/manage', [BillingController::class , 'manageBilling'])->name('billing.manage');
     Route::post('/billing/cancel', [BillingController::class , 'cancelSubscription'])->name('billing.cancel');
+
+    // API Tokens
+    Route::get('/api/tokens', [ApiTokenController::class , 'index'])->name('api.tokens.index');
+    Route::post('/api/tokens', [ApiTokenController::class , 'store'])->name('api.tokens.store');
+    Route::delete('/api/tokens/{id}', [ApiTokenController::class , 'destroy'])->name('api.tokens.destroy');
+
+    // Webhooks
+    Route::get('/webhooks', [WebhookController::class , 'index'])->name('webhooks.index');
+    Route::post('/webhooks', [WebhookController::class , 'store'])->name('webhooks.store');
+    Route::delete('/webhooks/{id}', [WebhookController::class , 'destroy'])->name('webhooks.destroy');
 
     // Routes Notifications
     Route::get('/notifications', [NotificationController::class , 'index'])->name('notifications.index');
@@ -113,4 +125,5 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard/analytics', [DashboardController::class , 'getAnalytics'])->name('api.dashboard.analytics');
             Route::patch('/tasks/{id}/status', [TaskController::class , 'updateStatus'])->name('api.tasks.updateStatus');
         }
-        );    });
+        );
+    });
