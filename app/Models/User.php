@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 namespace App\Models;
 
@@ -8,6 +8,7 @@ use App\Models\TeamMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Cache;
@@ -88,6 +89,30 @@ class User extends Authenticatable
     public function unreadNotifications()
     {
         return $this->notifications()->whereNull('read_at');
+    }
+
+    /**
+     * Get the user's current subscription.
+     */
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class)->latest();
+    }
+
+    /**
+     * Check if the user has a specific plan.
+     */
+    public function hasPlan(string $planName): bool
+    {
+        return $this->subscription?->plan?->name === $planName;
+    }
+
+    /**
+     * Get the features associated with the user's plan.
+     */
+    public function getPlanFeatures(): array
+    {
+        return $this->subscription?->plan?->features ?? [];
     }
 
     /**
