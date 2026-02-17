@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Invitation;
+use App\Mail\TeamInvitationMail;
+use App\Models\TeamInvitation;
 use App\Models\TeamMember;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 class InvitationController extends Controller
 {
     /**
-     * Crée une invitation pour rejoindre l'équipe (email requis).
+     * Envoie une invitation par email.
      */
-    public function store(Request $request, string $teamId): RedirectResponse
+    public function sendEmailInvitation(Request $request, string $teamId): RedirectResponse
     {
         $team = Auth::user()->teams()->findOrFail($teamId);
         $validated = $request->validate(['email' => 'required|email|exists:users,email']);
@@ -25,10 +27,14 @@ class InvitationController extends Controller
             return redirect()->route('teams.show', $teamId)->with('error', 'Cet utilisateur est déjà membre.');
         }
 
-        $invitation = $team->invitations()->updateOrCreate(
+        // Utilisation du nouveau modèle TeamInvitation
+        $invitation = TeamInvitation::updateOrCreate(
+            ['team_id' => $teamId, 'email' => $validated['email']],
             ['email' => $validated['email']],
-            ['token' => Str::random(64), 'status' => 'pending']
+            ['token' => Str::random(64), 'accepted_at' => null]
         );
+
+        Mail::to($validated['email'])->send(new TeamInvitationMail($invitation));
 
         return redirect()->route('teams.show', $teamId)->with('success', 'Invitation envoyée');
     }
@@ -36,16 +42,16 @@ class InvitationController extends Controller
     /**
      * Accepte l'invitation et crée le TeamMember.
      */
-    public function accept(string $token): RedirectResponse
+    public function acceptInvitation(string $token): RedirectResponse
     {
-        $invitation = Invitation::where('token', $token)->where('status', 'pending')->firstOrFail();
+        $invitation = TeamInvitation::where('token', $token)->whereNull('accepted_at')->firstOrFail();
         abort_if(Auth::user()->email !== $invitation->email, 403);
 
         TeamMember::firstOrCreate(
             ['team_id' => $invitation->team_id, 'user_id' => Auth::id()],
             ['team_id' => $invitation->team_id, 'user_id' => Auth::id()]
         );
-        $invitation->update(['status' => 'accepted']);
+        $invitation->update(['accepted_at' => now()]);
 
         return redirect()->route('teams.show', $invitation->team_id)->with('success', 'Invitation acceptée');
     }
@@ -53,12 +59,12 @@ class InvitationController extends Controller
     /**
      * Refuse l'invitation.
      */
-    public function decline(string $token): RedirectResponse
+    public function declineInvitation(string $token): RedirectResponse
     {
-        $invitation = Invitation::where('token', $token)->where('status', 'pending')->firstOrFail();
+        $invitation = TeamInvitation::where('token', $token)->whereNull('accepted_at')->firstOrFail();
         abort_if(Auth::user()->email !== $invitation->email, 403);
 
-        $invitation->update(['status' => 'declined']);
+        $invitation->delete(); // On supprime l'invitation si refusée
 
         return redirect()->route('teams.index')->with('success', 'Invitation refusée');
     }

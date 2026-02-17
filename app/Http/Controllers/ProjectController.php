@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificationHelper;
+use App\Services\WebhookDispatcher;
 use App\Models\Project;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -41,7 +42,7 @@ class ProjectController extends Controller
     /**
      * Valide et crée un projet.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request, WebhookDispatcher $webhookDispatcher): RedirectResponse
     {
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -51,6 +52,7 @@ class ProjectController extends Controller
             'status' => 'required|in:preparation,in_progress,completed',
         ]);
 
+        /** @var \App\Models\Project $project */
         $project = $this->currentUser()->projects()->create($validated);
         $this->currentUser()->forgetStatsCache();
 
@@ -61,6 +63,8 @@ class ProjectController extends Controller
             "Un nouveau projet a été créé",
             route('projects.show', $project->id)
         );
+
+        $webhookDispatcher->dispatch('project.created', $project->toArray(), Auth::id());
 
         return redirect()->route('projects.show', $project->id)->with('success', 'Projet créé');
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificationHelper;
+use App\Services\WebhookDispatcher;
 use App\Models\Comment;
 use App\Models\Task;
 use Illuminate\Http\RedirectResponse;
@@ -14,10 +15,10 @@ class CommentController extends Controller
     /**
      * Enregistre un nouveau commentaire sur une tâche.
      */
-    public function store(Request $request, string $taskId): RedirectResponse
+    public function store(Request $request, string $taskId, WebhookDispatcher $webhookDispatcher): RedirectResponse
     {
         $request->validate(['content' => 'required|string|max:1000']);
-        Comment::create([
+        $comment = Comment::create([
             'task_id' => $taskId,
             'user_id' => Auth::id(),
             'content' => $request->content,
@@ -32,6 +33,8 @@ class CommentController extends Controller
             "Quelqu'un a commenté votre tâche",
             route('tasks.show', $taskId)
         );
+
+        $webhookDispatcher->dispatch('comment.added', $comment->toArray(), Auth::id());
 
         return redirect(route('tasks.show', $taskId))->with('success', 'Commentaire ajouté');
     }

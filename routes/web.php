@@ -12,6 +12,7 @@ use App\Http\Controllers\TeamController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ApiTokenController;
+use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\WebhookController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -24,6 +25,15 @@ Route::get('/', function () {
 
 Route::get('/pricing', [PaymentController::class , 'showPlans'])->name('pricing.index');
 Route::post('/webhook/stripe', [PaymentController::class , 'webhook'])->name('webhook.stripe');
+
+// Invitations (Public/Protected logic handled in controller)
+Route::get('/invitations/{token}/accept', [InvitationController::class , 'acceptInvitation'])->name('invitations.accept');
+Route::get('/invitations/{token}/decline', [InvitationController::class , 'declineInvitation'])->name('invitations.decline');
+
+Route::get('/api/docs', function () {
+    return view('api.docs');
+
+})->name('api.docs');
 
 Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class , 'register'])->name('register');
@@ -44,16 +54,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/billing', [BillingController::class , 'index'])->name('billing.index');
     Route::post('/billing/manage', [BillingController::class , 'manageBilling'])->name('billing.manage');
     Route::post('/billing/cancel', [BillingController::class , 'cancelSubscription'])->name('billing.cancel');
-
-    // API Tokens
-    Route::get('/api/tokens', [ApiTokenController::class , 'index'])->name('api.tokens.index');
-    Route::post('/api/tokens', [ApiTokenController::class , 'store'])->name('api.tokens.store');
-    Route::delete('/api/tokens/{id}', [ApiTokenController::class , 'destroy'])->name('api.tokens.destroy');
-
-    // Webhooks
-    Route::get('/webhooks', [WebhookController::class , 'index'])->name('webhooks.index');
-    Route::post('/webhooks', [WebhookController::class , 'store'])->name('webhooks.store');
-    Route::delete('/webhooks/{id}', [WebhookController::class , 'destroy'])->name('webhooks.destroy');
 
     // Routes Notifications
     Route::get('/notifications', [NotificationController::class , 'index'])->name('notifications.index');
@@ -118,6 +118,19 @@ Route::middleware('auth')->group(function () {
         Route::resource('teams', TeamController::class)->except(['store']);
         Route::post('/teams/{teamId}/members', [TeamController::class , 'addMember'])->name('teams.addMember');
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class , 'removeMember'])->name('teams.removeMember');
+        Route::post('/teams/{teamId}/invite-email', [InvitationController::class , 'sendEmailInvitation'])->name('teams.inviteEmail');
+
+        // API Tokens
+        Route::get('/api/tokens', [ApiTokenController::class , 'index'])->name('api.tokens.index');
+        Route::post('/api/tokens', [ApiTokenController::class , 'store'])->name('api.tokens.store');
+        Route::delete('/api/tokens/{id}', [ApiTokenController::class , 'destroy'])->name('api.tokens.destroy');
+
+        // Webhooks
+        Route::get('/webhooks', [WebhookController::class , 'index'])->name('webhooks.index');
+        Route::get('/webhooks/create', [WebhookController::class , 'create'])->name('webhooks.create');
+        Route::post('/webhooks', [WebhookController::class , 'store'])->name('webhooks.store');
+        Route::delete('/webhooks/{id}', [WebhookController::class , 'destroy'])->name('webhooks.destroy');
+        Route::post('/webhooks/{id}/test', [WebhookController::class , 'testWebhook'])->name('webhooks.test');
 
         // API JSON pour animations
         Route::prefix('api')->group(function () {

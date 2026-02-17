@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificationHelper;
+use App\Services\WebhookDispatcher;
 use App\Models\Task;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -25,7 +26,7 @@ class TaskController extends Controller
     /**
      * Valide et crée une tâche.
      */
-    public function store(Request $request, string $projectId): RedirectResponse
+    public function store(Request $request, string $projectId, WebhookDispatcher $webhookDispatcher): RedirectResponse
     {
         $project = $this->currentUser()->projects()->findOrFail($projectId);
 
@@ -36,7 +37,7 @@ class TaskController extends Controller
             'due_date' => 'nullable|date',
         ]);
 
-        $project->tasks()->create($validated);
+        $task = $project->tasks()->create($validated);
         $this->currentUser()->forgetStatsCache();
 
         NotificationHelper::createNotification(
@@ -46,6 +47,8 @@ class TaskController extends Controller
             "Une nouvelle tâche a été créée",
             route('projects.show', $projectId)
         );
+
+        $webhookDispatcher->dispatch('task.created', $task->toArray(), Auth::id());
 
         return redirect()->route('projects.show', $projectId)->with('success', 'Tâche créée');
     }
@@ -72,7 +75,7 @@ class TaskController extends Controller
     /**
      * Valide et modifie la tâche.
      */
-    public function update(Request $request, string $id): RedirectResponse
+    public function update(Request $request, string $id, WebhookDispatcher $webhookDispatcher): RedirectResponse
     {
         $task = $this->getTaskForUser($id);
 
@@ -85,6 +88,8 @@ class TaskController extends Controller
 
         $task->update($validated);
         $this->currentUser()->forgetStatsCache();
+
+        $webhookDispatcher->dispatch('task.updated', $task->toArray(), Auth::id());
 
         return redirect()->route('projects.show', $task->project_id)->with('success', 'Tâche modifiée');
     }
@@ -142,13 +147,14 @@ class TaskController extends Controller
     /**
      * API: met à jour le statut d'une tâche (PATCH), retourne la tâche pour animations.
      */
-    public function updateStatus(Request $request, string $id): JsonResponse
+    public function updateStatus(Request $request, string $id, WebhookDispatcher $webhookDispatcher): JsonResponse
     {
         $task = $this->getTaskForUser($id);
         $validated = $request->validate(['status' => 'required|in:todo,in_progress,done']);
         $task->update($validated);
         $this->currentUser()->forgetStatsCache();
         $task->load('project');
+        $webhookDispatcher->dispatch('task.updated', $task->toArray(), Auth::id());
         return response()->json($task);
     }
 

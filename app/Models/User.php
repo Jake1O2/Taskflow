@@ -1,12 +1,7 @@
-﻿<?php
-﻿<?php
+<?php
 
 namespace App\Models;
 
-use App\Models\Team;
-use App\Models\Project;
-use App\Models\Webhook;
-use App\Models\TeamMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -28,6 +23,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'stripe_customer_id',
         'api_token',
     ];
 
