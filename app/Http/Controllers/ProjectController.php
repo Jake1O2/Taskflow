@@ -175,4 +175,4 @@ class ProjectController extends Controller
         $user = Auth::user();
         return $user;
     }
-}
+}.
