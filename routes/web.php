@@ -102,6 +102,7 @@ Route::middleware('auth')->group(function () {
         ->middleware('can:view,task')
         ->name('tasks.activity');
     Route::get('/search/tasks', [TaskController::class, 'search'])->name('tasks.search');
+    Route::get('/filter/tasks', [TaskController::class, 'filter'])->name('tasks.filter');
 
     // Routes pour les commentaires
     Route::post('/tasks/{id}/comments', [CommentController::class, 'store'])->name('comments.store');
@@ -150,4 +151,8 @@ Route::middleware('auth')->group(function () {
             Route::get('/dashboard/analytics', [DashboardController::class, 'getAnalytics'])->name('api.dashboard.analytics');
         }
     );
+    // Preferences
+    Route::get('/preferences', [\App\Http\Controllers\PreferenceController::class, 'index'])->name('preferences');
+    Route::post('/preferences', [\App\Http\Controllers\PreferenceController::class, 'update'])->name('preferences.update');
+    Route::post('/api/user/theme', [\App\Http\Controllers\PreferenceController::class, 'updateTheme'])->name('api.user.theme');
 });

@@ -129,7 +129,7 @@ class User extends Authenticatable
     public function getPlanFeatures(): array
     {
         $plan = $this->subscription?->plan;
-        if (! $plan) {
+        if (!$plan) {
             return [];
         }
 
@@ -142,7 +142,7 @@ class User extends Authenticatable
                 $allPlanFeatures = Plan::query()
                     ->pluck('features')
                     ->flatten()
-                    ->filter(fn ($feature) => $feature !== 'all_features')
+                    ->filter(fn($feature) => $feature !== 'all_features')
                     ->unique()
                     ->values()
                     ->all();
@@ -162,7 +162,7 @@ class User extends Authenticatable
         return Cache::remember(
             'taskflow.stats.' . $this->id,
             $ttlSeconds,
-            fn () => $this->computeStats()
+            fn() => $this->computeStats()
         );
     }
 
@@ -225,5 +225,22 @@ class User extends Authenticatable
     public function activityLogs(): HasMany
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    /**
+     * Get the user's preferences.
+     */
+    public function preference(): HasOne
+    {
+        return $this->hasOne(UserPreference::class)->withDefault([
+            'theme' => 'auto',
+            'primary_color' => '#2563eb',
+            'accent_color' => '#059669',
+            'language' => 'fr',
+            'timezone' => 'Europe/Paris',
+            'notifications_email' => true,
+            'notifications_weekly_summary' => true,
+            'notifications_marketing' => false,
+        ]);
     }
 }

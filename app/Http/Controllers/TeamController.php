@@ -16,21 +16,15 @@ use Illuminate\View\View;
 
 class TeamController extends Controller
 {
-    public function index(): \Inertia\Response
+    public function index(): View
     {
         $teams = Auth::user()->teams()->orderBy('created_at', 'desc')->get();
-        return \Inertia\Inertia::render('Teams/Index', [
-            'teams' => $teams,
-            'flash' => [
-                'success' => session('success'),
-                'error' => session('error'),
-            ],
-        ]);
+        return view('teams.index', compact('teams'));
     }
 
-    public function create(): \Inertia\Response
+    public function create(): View
     {
-        return \Inertia\Inertia::render('Teams/Create');
+        return view('teams.create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -46,7 +40,7 @@ class TeamController extends Controller
         return redirect()->route('teams.show', $team->id)->with('success', 'Équipe créée');
     }
 
-    public function show(string $id): \Inertia\Response
+    public function show(string $id): View
     {
         // Valider que l'ID est un entier valide
         abort_unless(is_numeric($id) && $id > 0, 400, 'ID équipe invalide');
@@ -55,10 +49,7 @@ class TeamController extends Controller
         $team->load(['owner', 'members.user']);
         $members = $team->members;
 
-        return \Inertia\Inertia::render('Teams/Show', [
-            'team' => $team,
-            'members' => $members,
-        ]);
+        return view('teams.show', compact('team', 'members'));
     }
 
     public function invitations(Team $team): View
@@ -71,14 +62,12 @@ class TeamController extends Controller
         return view('teams.invitations', compact('team', 'pendingInvitations'));
     }
 
-    public function edit(Team $team): \Inertia\Response
+    public function edit(Team $team): View
     {
         // Vérifier que l'utilisateur est propriétaire de l'équipe
         abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut modifier l\'équipe');
 
-        return \Inertia\Inertia::render('Teams/Edit', [
-            'team' => $team,
-        ]);
+        return view('teams.edit', compact('team'));
     }
 
     public function update(Request $request, Team $team): RedirectResponse

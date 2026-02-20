@@ -20,7 +20,8 @@
                     <div class="absolute inset-0 bg-blue-500/25 rounded-[32px] blur-2xl animate-pulse"></div>
                     <div class="relative w-24 h-24 rounded-[28px] flex items-center justify-center shadow-2xl shadow-blue-500/30 border border-white/20 hover:scale-105 transition-transform duration-500"
                         style="background: linear-gradient(135deg, #1a68a8, #0d9488);">
-                        <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg width="56" height="56" style="color: white; width: 56px; height: 56px;"
+                            class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
                                 d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                         </svg>
