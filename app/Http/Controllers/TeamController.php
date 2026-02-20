@@ -16,15 +16,21 @@ use Illuminate\View\View;
 
 class TeamController extends Controller
 {
-    public function index(): View
+    public function index(): \Inertia\Response
     {
         $teams = Auth::user()->teams()->orderBy('created_at', 'desc')->get();
-        return view('teams.index', compact('teams'));
+        return \Inertia\Inertia::render('Teams/Index', [
+            'teams' => $teams,
+            'flash' => [
+                'success' => session('success'),
+                'error' => session('error'),
+            ],
+        ]);
     }
 
-    public function create(): View
+    public function create(): \Inertia\Response
     {
-        return view('teams.create');
+        return \Inertia\Inertia::render('Teams/Create');
     }
 
     public function store(Request $request): RedirectResponse
@@ -40,34 +46,39 @@ class TeamController extends Controller
         return redirect()->route('teams.show', $team->id)->with('success', 'Équipe créée');
     }
 
-    public function show(string $id): View
+    public function show(string $id): \Inertia\Response
     {
         // Valider que l'ID est un entier valide
         abort_unless(is_numeric($id) && $id > 0, 400, 'ID équipe invalide');
-        
+
         $team = $this->getTeamForUser($id);
         $team->load(['owner', 'members.user']);
         $members = $team->members;
 
-        return view('teams.show', compact('team', 'members'));
+        return \Inertia\Inertia::render('Teams/Show', [
+            'team' => $team,
+            'members' => $members,
+        ]);
     }
 
     public function invitations(Team $team): View
     {
         // Vérifier que l'utilisateur est propriétaire de l'équipe
         abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut voir les invitations');
-        
+
         $pendingInvitations = $team->teamInvitations()->whereNull('accepted_at')->orderBy('created_at', 'desc')->get();
 
         return view('teams.invitations', compact('team', 'pendingInvitations'));
     }
 
-    public function edit(Team $team): View
+    public function edit(Team $team): \Inertia\Response
     {
         // Vérifier que l'utilisateur est propriétaire de l'équipe
         abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut modifier l\'équipe');
-        
-        return view('teams.edit', compact('team'));
+
+        return \Inertia\Inertia::render('Teams/Edit', [
+            'team' => $team,
+        ]);
     }
 
     public function update(Request $request, Team $team): RedirectResponse
@@ -90,7 +101,7 @@ class TeamController extends Controller
     {
         // Vérifier que l'utilisateur est propriétaire de l'équipe
         abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut supprimer l\'équipe');
-        
+
         $team->delete();
         Auth::user()->forgetStatsCache();
 
@@ -170,25 +181,25 @@ class TeamController extends Controller
     {
         // Valider que l'ID est un entier valide
         abort_unless(is_numeric($id) && $id > 0, 400, 'ID équipe invalide');
-        
+
         // Vérifier que l'utilisateur est membre de l'équipe (propriétaire ou membre)
         $team = Team::findOrFail($id);
         $user = $this->currentUser();
-        
+
         // Vérifier si l'utilisateur est propriétaire ou membre
         $isOwner = $team->user_id === $user->id;
         $isMember = $team->members()->where('user_id', $user->id)->exists();
-        
+
         abort_unless($isOwner || $isMember, 403, 'Vous n\'avez pas accès à cette équipe');
-        
+
         return $team;
     }
 
     private function currentUser(): \App\Models\User
     {
         $user = Auth::user();
-        abort_unless($user, 401, 'Utilisateur non authentifié');
-        
+        abort_if(!$user, 401, 'Utilisateur non authentifié');
+
         return $user;
     }
 }
