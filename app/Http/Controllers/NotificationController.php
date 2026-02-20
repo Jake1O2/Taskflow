@@ -8,9 +8,6 @@ use Illuminate\View\View;
 
 class NotificationController extends Controller
 {
-    /**
-     * Affiche les notifications de l'utilisateur.
-     */
     public function index(): View
     {
         $notifications = Auth::user()->notifications()->orderBy('created_at', 'desc')->paginate(20);

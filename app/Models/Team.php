@@ -20,13 +20,18 @@ class Team extends Model
         return $this->hasMany(TeamMember::class);
     }
 
-    public function invitations(): HasMany
-    {
-        return $this->hasMany(Invitation::class);
-    }
-
     public function projects(): HasMany
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function teamInvitations(): HasMany
+    {
+        return $this->hasMany(TeamInvitation::class);
+    }
+
+    public function slackWorkspaces(): HasMany
+    {
+        return $this->hasMany(SlackWorkspace::class);
     }
 }

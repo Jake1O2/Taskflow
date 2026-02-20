@@ -11,17 +11,11 @@ use Illuminate\View\View;
 
 class AuthController extends Controller
 {
-    /**
-     * Affiche le formulaire d'inscription.
-     */
     public function register(): View
     {
         return view('auth.register');
     }
 
-    /**
-     * Traite la demande d'inscription.
-     */
     public function storeRegister(Request $request): RedirectResponse
     {
         $request->validate([
@@ -33,7 +27,7 @@ class AuthController extends Controller
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
-            'password' => $request->password, // Le 'hashed' cast dans le modèle User s'en occupe
+            'password' => $request->password,
         ]);
 
         Auth::login($user);
@@ -41,17 +35,11 @@ class AuthController extends Controller
         return redirect()->route('dashboard');
     }
 
-    /**
-     * Affiche le formulaire de connexion.
-     */
     public function login(): View
     {
         return view('auth.login');
     }
 
-    /**
-     * Traite la demande de connexion.
-     */
     public function storeLogin(Request $request): RedirectResponse
     {
         $credentials = $request->validate([
@@ -69,9 +57,6 @@ class AuthController extends Controller
         ])->onlyInput('email');
     }
 
-    /**
-     * Déconnecte l'utilisateur.
-     */
     public function logout(Request $request): RedirectResponse
     {
         Auth::logout();

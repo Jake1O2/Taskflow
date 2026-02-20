@@ -14,9 +14,6 @@ class BillingController extends Controller
         Stripe::setApiKey(config('services.stripe.secret'));
     }
 
-    /**
-     * Affiche le dashboard de facturation
-     */
     public function index(): View
     {
         $user = Auth::user();
@@ -35,14 +32,11 @@ class BillingController extends Controller
         return view('billing.index', compact('subscription', 'usage', 'limits'));
     }
 
-    /**
-     * Redirige vers le portail Stripe
-     */
     public function manageBilling()
     {
         try {
             $session = PortalSession::create([
-                'customer' => Auth::user()->stripe_customer_id, // À ajouter dans User model
+                'customer' => Auth::user()->stripe_customer_id,
                 'return_url' => route('billing.index'),
             ]);
 
@@ -52,9 +46,6 @@ class BillingController extends Controller
         }
     }
 
-    /**
-     * Annule l'abonnement
-     */
     public function cancelSubscription()
     {
         $subscription = Auth::user()->subscription;

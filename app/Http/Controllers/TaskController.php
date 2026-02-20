@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificationHelper;
-use App\Services\WebhookDispatcher;
+use App\Models\Project;
 use App\Models\Task;
+use App\Models\TaskAssignmentLog;
+use App\Models\User;
+use App\Services\SlackNotifier;
+use App\Services\WebhookDispatcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,167 +18,411 @@ use Illuminate\View\View;
 
 class TaskController extends Controller
 {
-    /**
-     * Affiche le formulaire de création de tâche.
-     */
     public function create(string $projectId): View
     {
-        $project = $this->currentUser()->projects()->findOrFail($projectId);
+        $project = Project::findOrFail($projectId);
+        $this->authorize('create', [Task::class, $project]);
+
         return view('tasks.create', compact('project'));
     }
 
-    /**
-     * Valide et crée une tâche.
-     */
-    public function store(Request $request, string $projectId, WebhookDispatcher $webhookDispatcher): RedirectResponse
+    public function store(Request $request, string $projectId, WebhookDispatcher $webhookDispatcher, SlackNotifier $slackNotifier): RedirectResponse
     {
-        $project = $this->currentUser()->projects()->findOrFail($projectId);
+        $project = Project::findOrFail($projectId);
+        $this->authorize('create', [Task::class, $project]);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'due_date' => 'nullable|date',
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
+
+        if (isset($validated['assigned_to']) && $validated['assigned_to']) {
+            $assignee = User::findOrFail((int) $validated['assigned_to']);
+            abort_unless($this->canBeAssignedToProject($project, $assignee), 422);
+            $validated['assigned_at'] = now();
+        }
 
         $task = $project->tasks()->create($validated);
         $this->currentUser()->forgetStatsCache();
 
+        if (! empty($validated['assigned_to'])) {
+            TaskAssignmentLog::create([
+                'task_id' => $task->id,
+                'assigned_by' => Auth::id(),
+                'assigned_to' => (int) $validated['assigned_to'],
+                'assigned_at' => $task->assigned_at ?? now(),
+            ]);
+        }
+
+        $task->load(['project.team', 'assignee']);
+
         NotificationHelper::createNotification(
             Auth::id(),
-            'task_assigned',
-            "Tâche créée",
-            "Une nouvelle tâche a été créée",
+            'task_created',
+            'Task created',
+            'A new task has been created.',
             route('projects.show', $projectId)
         );
 
-        $webhookDispatcher->dispatch('task.created', $task->toArray(), Auth::id());
+        $slackNotifier->notifyTaskCreated($task);
+        $webhookDispatcher->dispatch('task.created', $task->toArray(), Auth::id(), false);
 
-        return redirect()->route('projects.show', $projectId)->with('success', 'Tâche créée');
+        if ($task->assignee) {
+            $slackNotifier->notifyTaskAssigned($task, $task->assignee);
+            $webhookDispatcher->dispatch('task.assigned', [
+                'task_id' => (int) $task->id,
+                'project_id' => (int) $task->project_id,
+                'assigned_to' => (int) $task->assignee->id,
+                'assigned_by' => (int) (Auth::id() ?? 0),
+            ], Auth::id(), false);
+        }
+
+        return redirect()->route('projects.show', $projectId)->with('success', 'Task created');
     }
 
-    /**
-     * Affiche les détails d'une tâche avec ses commentaires.
-     */
     public function show(string $id): View
     {
-        $task = Task::findOrFail($id);
-        abort_if($task->project->user_id !== Auth::id(), 403);
-        return view('tasks.show', ['task' => $task, 'comments' => $task->comments()->latest()->get()]);
+        $task = $this->getTaskForUser($id);
+        $this->authorize('view', $task);
+
+        return view('tasks.show', [
+            'task' => $task,
+            'comments' => $task->comments()->latest()->get(),
+        ]);
     }
 
-    /**
-     * Affiche le formulaire d'édition.
-     */
     public function edit(string $id): View
     {
         $task = $this->getTaskForUser($id);
+        $this->authorize('update', $task);
+
         return view('tasks.edit', compact('task'));
     }
 
-    /**
-     * Valide et modifie la tâche.
-     */
-    public function update(Request $request, string $id, WebhookDispatcher $webhookDispatcher): RedirectResponse
+    public function update(Request $request, string $id, WebhookDispatcher $webhookDispatcher, SlackNotifier $slackNotifier): RedirectResponse
     {
         $task = $this->getTaskForUser($id);
+        $this->authorize('update', $task);
+        $before = $this->trackedTaskState($task);
+        $previousAssigneeId = $before['assigned_to_id'];
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'status' => 'required|in:todo,in_progress,done',
             'due_date' => 'nullable|date',
+            'priority' => 'nullable|string|max:50',
+            'assigned_to' => 'nullable|exists:users,id',
         ]);
+
+        if (array_key_exists('assigned_to', $validated)) {
+            if ($validated['assigned_to']) {
+                $assignee = User::findOrFail((int) $validated['assigned_to']);
+                abort_unless($this->canBeAssignedToProject($task->project, $assignee), 422);
+            }
+
+            $validated['assigned_at'] = $validated['assigned_to'] ? now() : null;
+        }
 
         $task->update($validated);
         $this->currentUser()->forgetStatsCache();
+        $task->load(['project.team', 'assignee']);
 
-        $webhookDispatcher->dispatch('task.updated', $task->toArray(), Auth::id());
+        $changes = $this->extractTaskChanges($before, $task);
+        if ($changes !== []) {
+            $slackNotifier->notifyTaskUpdated($task, $changes);
+        }
 
-        return redirect()->route('projects.show', $task->project_id)->with('success', 'Tâche modifiée');
+        $webhookDispatcher->dispatch('task.updated', array_merge($task->toArray(), [
+            'task_id' => (int) $task->id,
+            'changes' => $changes,
+        ]), Auth::id(), false);
+
+        $currentAssigneeId = (int) ($task->assigned_to ?? 0);
+        if ($currentAssigneeId && $currentAssigneeId !== $previousAssigneeId && $task->assignee) {
+            $slackNotifier->notifyTaskAssigned($task, $task->assignee);
+            $webhookDispatcher->dispatch('task.assigned', [
+                'task_id' => (int) $task->id,
+                'project_id' => (int) $task->project_id,
+                'assigned_to' => $currentAssigneeId,
+                'assigned_by' => (int) (Auth::id() ?? 0),
+            ], Auth::id(), false);
+        }
+
+        return redirect()->route('projects.show', $task->project_id)->with('success', 'Task updated');
     }
 
-    /**
-     * Supprime la tâche.
-     */
     public function destroy(string $id): RedirectResponse
     {
         $task = $this->getTaskForUser($id);
+        $this->authorize('delete', $task);
+
         $projectId = $task->project_id;
         $task->delete();
         $this->currentUser()->forgetStatsCache();
 
-        return redirect()->route('projects.show', $projectId)->with('success', 'Tâche supprimée');
+        return redirect()->route('projects.show', $projectId)->with('success', 'Task deleted');
     }
 
-    /**
-     * Recherche des tâches par titre (user owns project).
-     */
     public function search(Request $request): View
     {
         $validated = $request->validate(['query' => 'required|string|max:255']);
-        $tasks = Task::whereHas('project', function ($q) {
-            $q->where('user_id', Auth::id());
-        })
+
+        $tasks = Task::query()
+            ->whereIn('project_id', $this->accessibleProjectIds())
             ->where('title', 'like', '%' . $validated['query'] . '%')
             ->with('project')
             ->orderBy('created_at', 'desc')
             ->get();
-        return view('tasks.index', compact('tasks'))->with('success', 'Recherche effectuée');
+
+        return view('tasks.index', compact('tasks'))->with('success', 'Search completed');
     }
 
-    /**
-     * Filtre les tâches par status (et optionnellement priority).
-     */
     public function filter(Request $request): View
     {
         $validated = $request->validate([
             'status' => 'required|in:todo,in_progress,done',
             'priority' => 'nullable|string|max:50',
         ]);
-        $query = Task::whereHas('project', function ($q) {
-            $q->where('user_id', Auth::id());
-        })->where('status', $validated['status']);
 
-        if (Schema::hasColumn('tasks', 'priority') && !empty($validated['priority'] ?? null)) {
+        $query = Task::query()
+            ->whereIn('project_id', $this->accessibleProjectIds())
+            ->where('status', $validated['status']);
+
+        if (Schema::hasColumn('tasks', 'priority') && ! empty($validated['priority'] ?? null)) {
             $query->where('priority', $validated['priority']);
         }
 
         $tasks = $query->with('project')->orderBy('created_at', 'desc')->get();
-        return view('tasks.index', compact('tasks'))->with('success', 'Recherche effectuée');
+
+        return view('tasks.index', compact('tasks'))->with('success', 'Search completed');
     }
 
-    /**
-     * API: met à jour le statut d'une tâche (PATCH), retourne la tâche pour animations.
-     */
-    public function updateStatus(Request $request, string $id, WebhookDispatcher $webhookDispatcher): JsonResponse
+    public function updateStatus(Request $request, string $id, WebhookDispatcher $webhookDispatcher, SlackNotifier $slackNotifier): JsonResponse
     {
         $task = $this->getTaskForUser($id);
+        $this->authorize('update', $task);
+        $before = $this->trackedTaskState($task);
+
         $validated = $request->validate(['status' => 'required|in:todo,in_progress,done']);
         $task->update($validated);
         $this->currentUser()->forgetStatsCache();
-        $task->load('project');
-        $webhookDispatcher->dispatch('task.updated', $task->toArray(), Auth::id());
+        $task->load(['project.team', 'assignee']);
+
+        $changes = $this->extractTaskChanges($before, $task);
+        if ($changes !== []) {
+            $slackNotifier->notifyTaskUpdated($task, $changes);
+        }
+
+        $webhookDispatcher->dispatch('task.updated', array_merge($task->toArray(), [
+            'task_id' => (int) $task->id,
+            'changes' => $changes,
+        ]), Auth::id(), false);
+
         return response()->json($task);
     }
 
-    /**
-     * Récupère une tâche appartenant à un projet de l'utilisateur connecté.
-     */
-    private function getTaskForUser(string $taskId): Task
+    public function assign(
+        Request $request,
+        string $taskId,
+        string $userId,
+        WebhookDispatcher $webhookDispatcher,
+        SlackNotifier $slackNotifier
+    ): JsonResponse|RedirectResponse
     {
-        return Task::whereHas('project', function ($query) {
-            $query->where('user_id', Auth::id());
-        })->findOrFail($taskId);
+        $task = Task::with('project.team')->findOrFail($taskId);
+        $this->authorize('assign', $task);
+
+        $assignee = User::findOrFail($userId);
+        abort_unless($this->canBeAssigned($task, $assignee), 422);
+
+        $assignedAt = now();
+
+        $task->update([
+            'assigned_to' => $assignee->id,
+            'assigned_at' => $assignedAt,
+        ]);
+
+        TaskAssignmentLog::create([
+            'task_id' => $task->id,
+            'assigned_by' => (int) Auth::id(),
+            'assigned_to' => $assignee->id,
+            'assigned_at' => $assignedAt,
+        ]);
+
+        NotificationHelper::createNotification(
+            $assignee->id,
+            'task_assigned',
+            'Task assigned',
+            "You have been assigned to task: {$task->title}",
+            route('tasks.show', $task->id)
+        );
+
+        $slackNotifier->notifyTaskAssigned($task, $assignee);
+        $webhookDispatcher->dispatch('task.assigned', [
+            'task_id' => (int) $task->id,
+            'project_id' => (int) $task->project_id,
+            'assigned_to' => $assignee->id,
+            'assigned_by' => (int) (Auth::id() ?? 0),
+        ], Auth::id(), false);
+
+        return $this->assignmentResponse($request, $task, 'Task assigned successfully');
     }
 
-    /**
-     * Helper pour récupérer l'utilisateur connecté avec le bon type pour l'IDE.
-     */
+    public function unassign(Request $request, string $taskId): JsonResponse|RedirectResponse
+    {
+        $task = Task::with(['project', 'assignee'])->findOrFail($taskId);
+        $this->authorize('assign', $task);
+
+        $previousAssignee = $task->assignee;
+
+        $task->update([
+            'assigned_to' => null,
+            'assigned_at' => null,
+        ]);
+
+        if ($previousAssignee) {
+            NotificationHelper::createNotification(
+                $previousAssignee->id,
+                'task_unassigned',
+                'Task unassigned',
+                "You have been unassigned from task: {$task->title}",
+                route('tasks.show', $task->id)
+            );
+        }
+
+        return $this->assignmentResponse($request, $task, 'Task unassigned successfully');
+    }
+
+    public function activity(Task $task): View
+    {
+        $this->authorize('view', $task);
+        $logs = $task->activityLogs()->with('user')->paginate(20);
+
+        return view('activity.index', [
+            'entity' => $task,
+            'entityType' => 'task',
+            'logs' => $logs,
+        ]);
+    }
+
+    private function getTaskForUser(string $taskId): Task
+    {
+        $task = Task::with('project')->findOrFail($taskId);
+        $this->authorize('view', $task);
+
+        return $task;
+    }
+
+    private function assignmentResponse(Request $request, Task $task, string $message): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'task' => $task->fresh(['assignee', 'project']),
+            ]);
+        }
+
+        return redirect()->route('tasks.show', $task->id)->with('success', $message);
+    }
+
+    private function canBeAssigned(Task $task, User $assignee): bool
+    {
+        $project = $task->project;
+
+        return $project ? $this->canBeAssignedToProject($project, $assignee) : false;
+    }
+
+    private function canBeAssignedToProject(Project $project, User $assignee): bool
+    {
+        if ((int) $project->created_by === (int) $assignee->id) {
+            return true;
+        }
+
+        if (! $project->team_id) {
+            return false;
+        }
+
+        return $project->team
+            ? $project->team->members()->where('user_id', $assignee->id)->exists()
+            : false;
+    }
+
+    private function trackedTaskState(Task $task): array
+    {
+        $task->loadMissing('assignee');
+
+        return [
+            'status' => $this->normalizeStatus((string) $task->status),
+            'priority' => $this->normalizePriority($task->priority),
+            'assignee' => $task->assignee?->name ?? 'Unassigned',
+            'due_date' => $task->due_date ? $task->due_date->format('Y-m-d') : 'No due date',
+            'assigned_to_id' => (int) ($task->assigned_to ?? 0),
+        ];
+    }
+
+    private function extractTaskChanges(array $before, Task $task): array
+    {
+        $after = $this->trackedTaskState($task);
+        $changes = [];
+
+        foreach (['status', 'priority', 'assignee', 'due_date'] as $field) {
+            if ($before[$field] !== $after[$field]) {
+                $changes[$field] = [
+                    'from' => $before[$field],
+                    'to' => $after[$field],
+                ];
+            }
+        }
+
+        return $changes;
+    }
+
+    private function normalizeStatus(string $status): string
+    {
+        return strtoupper(str_replace(['-', ' '], '_', trim($status)));
+    }
+
+    private function normalizePriority(string|null $priority): string
+    {
+        $value = trim((string) $priority);
+
+        return $value === '' ? 'N/A' : strtoupper(str_replace(['-', ' '], '_', $value));
+    }
+
+    private function accessibleProjectIds(): array
+    {
+        $user = $this->currentUser();
+
+        $ownedIds = Project::query()
+            ->where('created_by', $user->id)
+            ->pluck('id');
+
+        $teamIds = $user->teams()->pluck('id')
+            ->merge($user->teamMemberships()->pluck('teams.id'))
+            ->unique()
+            ->values();
+
+        $teamProjectIds = Project::query()
+            ->whereIn('team_id', $teamIds)
+            ->pluck('id');
+
+        return $ownedIds
+            ->merge($teamProjectIds)
+            ->unique()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
     private function currentUser(): \App\Models\User
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
+
         return $user;
     }
 }

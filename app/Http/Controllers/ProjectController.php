@@ -3,8 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificationHelper;
-use App\Services\WebhookDispatcher;
 use App\Models\Project;
+use App\Services\WebhookDispatcher;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,7 @@ use Illuminate\View\View;
 class ProjectController extends Controller
 {
     /**
-     * API: statistiques (projets, tâches, équipes) pour animations (avec cache).
+     * API stats for dashboard widgets.
      */
     public function getStats(): JsonResponse
     {
@@ -22,28 +23,35 @@ class ProjectController extends Controller
     }
 
     /**
-     * Affiche la liste des projets de l'utilisateur connecté.
+     * Show projects visible to the authenticated user.
      */
     public function index(): View
     {
-        $projects = Auth::user()->projects()->withCount('tasks')->orderBy('created_at', 'desc')->get();
+        $projects = $this->accessibleProjectsQuery()
+            ->withCount('tasks')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('projects.index', compact('projects'));
     }
 
     /**
-     * Affiche le formulaire de création.
+     * Show project creation form.
      */
     public function create(): View
     {
         $teams = Auth::user()->teams()->get();
+
         return view('projects.create', compact('teams'));
     }
 
     /**
-     * Valide et crée un projet.
+     * Validate and create a project.
      */
     public function store(Request $request, WebhookDispatcher $webhookDispatcher): RedirectResponse
     {
+        $this->authorize('create', Project::class);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
@@ -58,43 +66,48 @@ class ProjectController extends Controller
 
         NotificationHelper::createNotification(
             Auth::id(),
-            'project_shared',
-            "Projet créé",
-            "Un nouveau projet a été créé",
+            'project_created',
+            'Project created',
+            'A new project has been created.',
             route('projects.show', $project->id)
         );
 
         $webhookDispatcher->dispatch('project.created', $project->toArray(), Auth::id());
 
-        return redirect()->route('projects.show', $project->id)->with('success', 'Projet créé');
+        return redirect()->route('projects.show', $project->id)->with('success', 'Project created');
     }
 
     /**
-     * Affiche les détails du projet + ses tâches.
+     * Show project with tasks.
      */
     public function show(string $id): View
     {
-        // Utilisation de with('tasks') pour charger les tâches associées
-        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
+        $project = Project::with('tasks')->findOrFail($id);
+        $this->authorize('view', $project);
+
         return view('projects.show', compact('project'));
     }
 
     /**
-     * Affiche le formulaire d'édition.
+     * Show project edit form.
      */
     public function edit(string $id): View
     {
-        $project = $this->currentUser()->projects()->findOrFail($id);
+        $project = Project::findOrFail($id);
+        $this->authorize('update', $project);
+
         $teams = Auth::user()->teams()->get();
+
         return view('projects.edit', compact('project', 'teams'));
     }
 
     /**
-     * Valide et modifie le projet.
+     * Validate and update project.
      */
     public function update(Request $request, string $id): RedirectResponse
     {
-        $project = $this->currentUser()->projects()->findOrFail($id);
+        $project = Project::findOrFail($id);
+        $this->authorize('update', $project);
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
@@ -107,37 +120,42 @@ class ProjectController extends Controller
         $project->update($validated);
         $this->currentUser()->forgetStatsCache();
 
-        return redirect()->route('projects.show', $project->id)->with('success', 'Projet modifié');
+        return redirect()->route('projects.show', $project->id)->with('success', 'Project updated');
     }
 
     /**
-     * Supprime le projet.
+     * Delete project.
      */
     public function destroy(string $id): RedirectResponse
     {
-        $project = $this->currentUser()->projects()->findOrFail($id);
+        $project = Project::findOrFail($id);
+        $this->authorize('delete', $project);
+
         $project->delete();
         $this->currentUser()->forgetStatsCache();
 
-        return redirect()->route('projects.index')->with('success', 'Projet supprimé');
+        return redirect()->route('projects.index')->with('success', 'Project deleted');
     }
 
     /**
-     * Affiche la vue Kanban du projet.
+     * Show project Kanban board.
      */
     public function kanban(string $id): View
     {
-        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
+        $project = Project::with('tasks')->findOrFail($id);
+        $this->authorize('view', $project);
+
         $tasksByStatus = [
             'todo' => $project->tasks->where('status', 'todo'),
             'in_progress' => $project->tasks->where('status', 'in_progress'),
             'done' => $project->tasks->where('status', 'done'),
         ];
+
         return view('projects.kanban', compact('project', 'tasksByStatus'));
     }
 
     /**
-     * Recherche des projets par titre (user owns).
+     * Search projects by title among visible projects.
      */
     public function search(Request $request): View
     {
@@ -145,22 +163,29 @@ class ProjectController extends Controller
             'query' => 'required|string|max:255',
             'team_id' => 'nullable|exists:teams,id',
         ]);
-        $query = Project::where('user_id', Auth::id())
+
+        $projects = $this->accessibleProjectsQuery()
             ->where('title', 'like', '%' . $validated['query'] . '%')
-            ->whereTeam($request->input('team_id'))
-            ->orderBy('created_at', 'desc');
-        $projects = $query->get();
-        return view('projects.index', compact('projects'))->with('success', 'Recherche effectuée');
+            ->when(
+                $validated['team_id'] ?? null,
+                fn (Builder $builder, $teamId) => $builder->whereTeam((int) $teamId)
+            )
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('projects.index', compact('projects'))->with('success', 'Search completed');
     }
 
     /**
-     * Affiche la vue Calendrier du projet.
+     * Show project calendar.
      */
     public function calendar(Request $request, string $id): View
     {
-        $project = $this->currentUser()->projects()->with('tasks')->findOrFail($id);
+        $project = Project::with('tasks')->findOrFail($id);
+        $this->authorize('view', $project);
+
         $date = $request->has('date')
-            ?\Carbon\Carbon::parse($request->query('date'))->startOfMonth()
+            ? \Carbon\Carbon::parse($request->query('date'))->startOfMonth()
             : now()->startOfMonth();
 
         return view('projects.calendar', [
@@ -171,12 +196,48 @@ class ProjectController extends Controller
     }
 
     /**
-     * Helper pour récupérer l'utilisateur connecté avec le bon type pour l'IDE.
+     * Show activity history for a project.
+     */
+    public function activity(Project $project): View
+    {
+        $this->authorize('view', $project);
+        $logs = $project->activityLogs()->with('user')->paginate(20);
+
+        return view('activity.index', [
+            'entity' => $project,
+            'entityType' => 'project',
+            'logs' => $logs,
+        ]);
+    }
+
+    /**
+     * Get authenticated user with concrete model type.
      */
     private function currentUser(): \App\Models\User
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
+
         return $user;
+    }
+
+    /**
+     * Projects visible to owner or same-team members.
+     */
+    private function accessibleProjectsQuery(): Builder
+    {
+        $user = $this->currentUser();
+        $teamIds = $user->teams()->pluck('id')
+            ->merge($user->teamMemberships()->pluck('teams.id'))
+            ->unique()
+            ->values();
+
+        return Project::query()->where(function (Builder $query) use ($user, $teamIds) {
+            $query->where('created_by', $user->id);
+
+            if ($teamIds->isNotEmpty()) {
+                $query->orWhereIn('team_id', $teamIds);
+            }
+        });
     }
 }

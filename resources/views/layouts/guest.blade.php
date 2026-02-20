@@ -5,33 +5,22 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ config('app.name', 'TaskFlow') }}</title>
 
-        <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-        
+        <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="antialiased font-sans bg-mesh-ultimate min-h-screen relative overflow-x-hidden selection:bg-blue-500/30 selection:text-white">
-        <!-- Interactive Geometric Scene -->
-        <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-            {{-- Floating SVG Rings for 3D depth --}}
-            <svg class="absolute top-[5%] left-[10%] w-[600px] h-[600px] text-blue-500/10 animate-float opacity-30" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="0.5" fill="none" />
-                <circle cx="50" cy="50" r="30" stroke="currentColor" stroke-width="0.3" fill="none" />
-            </svg>
-            <svg class="absolute bottom-[0%] right-[-5%] w-[800px] h-[800px] text-purple-600/10 animate-float-slow opacity-20" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="0.2" fill="none" stroke-dasharray="2 2" />
-                <circle cx="50" cy="50" r="35" stroke="currentColor" stroke-width="0.1" fill="none" />
-            </svg>
-            
-            {{-- Dynamic Glows --}}
-            <div class="absolute top-[-20%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[150px]"></div>
-            <div class="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/10 rounded-full blur-[150px]"></div>
+    <body class="min-h-screen overflow-x-hidden antialiased font-sans selection:bg-primary/30 selection:text-white">
+        <div class="fixed inset-0 -z-10 overflow-hidden bg-[radial-gradient(circle_at_15%_5%,rgba(42,120,182,0.36),transparent_35%),radial-gradient(circle_at_85%_0%,rgba(13,148,136,0.3),transparent_38%),linear-gradient(145deg,#061423_0%,#0b1f35_52%,#0f2e4a_100%)]">
+            <div class="absolute -left-24 top-8 h-72 w-72 rounded-full border border-white/10"></div>
+            <div class="absolute right-[-4rem] top-12 h-96 w-96 rounded-full border border-cyan-300/20"></div>
+            <div class="absolute bottom-[-7rem] left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-warning/20 blur-[130px]"></div>
+            <div class="absolute inset-0 grain-texture"></div>
         </div>
 
-        <div class="min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8 relative z-10">
-            <div class="w-full max-w-md">
+        <div class="relative z-10 flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-10">
+            <div class="w-full max-w-lg">
                 @yield('content')
             </div>
         </div>

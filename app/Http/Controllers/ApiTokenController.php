@@ -9,7 +9,6 @@ class ApiTokenController extends Controller
 {
     public function index()
     {
-        // Mock data since Sanctum is not installed
         $tokens = collect([
             (object)[
                 'id' => 1,

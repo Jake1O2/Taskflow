@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Schema;
 
 class Task extends Model
 {
@@ -23,6 +25,8 @@ class Task extends Model
         'status',
         'due_date',
         'priority',
+        'assigned_to',
+        'assigned_at',
     ];
 
     /**
@@ -32,6 +36,7 @@ class Task extends Model
     {
         return [
             'due_date' => 'date',
+            'assigned_at' => 'datetime',
         ];
     }
 
@@ -52,6 +57,40 @@ class Task extends Model
     }
 
     /**
+     * User assigned to this task.
+     */
+    public function assignee(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'assigned_to');
+    }
+
+    /**
+     * User that created/assigned this task when created_by exists.
+     */
+    public function assigner(): BelongsTo
+    {
+        $foreignKey = Schema::hasColumn($this->getTable(), 'created_by') ? 'created_by' : 'assigned_to';
+
+        return $this->belongsTo(User::class, $foreignKey);
+    }
+
+    /**
+     * Assignment history for this task.
+     */
+    public function assignmentLogs(): HasMany
+    {
+        return $this->hasMany(TaskAssignmentLog::class);
+    }
+
+    /**
+     * Activity history for this task.
+     */
+    public function activityLogs(): MorphMany
+    {
+        return $this->morphMany(ActivityLog::class, 'loggable')->latest('created_at');
+    }
+
+    /**
      * Scope pour filtrer par statut.
      */
     public function scopeWhereStatus(Builder $query, string $status): Builder
@@ -65,5 +104,25 @@ class Task extends Model
     public function scopeWherePriority(Builder $query, string $priority): Builder
     {
         return $query->where('priority', $priority);
+    }
+
+    /**
+     * Check if task is assigned to a given user.
+     */
+    public function isAssignedTo(int|string|null $userId): bool
+    {
+        if ($userId === null) {
+            return false;
+        }
+
+        return (int) $this->assigned_to === (int) $userId;
+    }
+
+    /**
+     * Scope for tasks assigned to a user.
+     */
+    public function scopeWhereAssignedTo(Builder $query, int|string $userId): Builder
+    {
+        return $query->where('assigned_to', (int) $userId);
     }
 }

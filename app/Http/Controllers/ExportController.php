@@ -13,7 +13,6 @@ class ExportController extends Controller
     {
         $user = Auth::user();
 
-        // Récupérer les IDs des équipes (propriétaire ou membre)
         $teamIds = $user->teams()->pluck('id')
             ->merge($user->teamMemberships()->pluck('teams.id'))
             ->unique();
@@ -26,7 +25,6 @@ class ExportController extends Controller
             })
             ->firstOrFail();
         
-        // Suppose une vue 'exports.project_pdf' existe
         $pdf = Pdf::loadView('exports.project_pdf', compact('project'))
             ->setPaper('a4', 'portrait')
             ->setWarnings(false);
@@ -42,7 +40,6 @@ class ExportController extends Controller
         return response()->streamDownload(function () use ($tasks) {
             $handle = fopen('php://output', 'w');
             
-            // BOM pour UTF-8 Excel
             fputs($handle, "\xEF\xBB\xBF");
             
             fputcsv($handle, ['Titre', 'Status', 'Échéance', 'Description']);

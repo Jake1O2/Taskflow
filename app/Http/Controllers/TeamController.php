@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Helpers\NotificationHelper;
+use App\Models\RolePermission;
+use App\Services\SlackNotifier;
+use App\Services\WebhookDispatcher;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
@@ -13,31 +16,22 @@ use Illuminate\View\View;
 
 class TeamController extends Controller
 {
-    /**
-     * Affiche la liste des équipes de l'utilisateur.
-     */
     public function index(): View
     {
         $teams = Auth::user()->teams()->orderBy('created_at', 'desc')->get();
         return view('teams.index', compact('teams'));
     }
 
-    /**
-     * Affiche le formulaire de création.
-     */
     public function create(): View
     {
         return view('teams.create');
     }
 
-    /**
-     * Valide et crée une équipe.
-     */
     public function store(Request $request): RedirectResponse
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:5000',
         ]);
 
         $team = Auth::user()->teams()->create($validated);
@@ -46,11 +40,11 @@ class TeamController extends Controller
         return redirect()->route('teams.show', $team->id)->with('success', 'Équipe créée');
     }
 
-    /**
-     * Affiche l'équipe et ses membres.
-     */
     public function show(string $id): View
     {
+        // Valider que l'ID est un entier valide
+        abort_unless(is_numeric($id) && $id > 0, 400, 'ID équipe invalide');
+        
         $team = $this->getTeamForUser($id);
         $team->load(['owner', 'members.user']);
         $members = $team->members;
@@ -58,25 +52,32 @@ class TeamController extends Controller
         return view('teams.show', compact('team', 'members'));
     }
 
-    /**
-     * Affiche le formulaire d'édition.
-     */
+    public function invitations(Team $team): View
+    {
+        // Vérifier que l'utilisateur est propriétaire de l'équipe
+        abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut voir les invitations');
+        
+        $pendingInvitations = $team->teamInvitations()->whereNull('accepted_at')->orderBy('created_at', 'desc')->get();
+
+        return view('teams.invitations', compact('team', 'pendingInvitations'));
+    }
+
     public function edit(Team $team): View
     {
-        abort_if($team->user_id !== Auth::id(), 403);
+        // Vérifier que l'utilisateur est propriétaire de l'équipe
+        abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut modifier l\'équipe');
+        
         return view('teams.edit', compact('team'));
     }
 
-    /**
-     * Valide et modifie l'équipe.
-     */
     public function update(Request $request, Team $team): RedirectResponse
     {
-        abort_if($team->user_id !== Auth::id(), 403);
+        // Vérifier que l'utilisateur est propriétaire de l'équipe
+        abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut modifier l\'équipe');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:5000',
         ]);
 
         $team->update($validated);
@@ -85,39 +86,43 @@ class TeamController extends Controller
         return redirect()->route('teams.show', $team->id)->with('success', 'Équipe modifiée');
     }
 
-    /**
-     * Supprime l'équipe.
-     */
     public function destroy(Team $team): RedirectResponse
     {
-        abort_if($team->user_id !== Auth::id(), 403);
+        // Vérifier que l'utilisateur est propriétaire de l'équipe
+        abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut supprimer l\'équipe');
+        
         $team->delete();
         Auth::user()->forgetStatsCache();
 
         return redirect()->route('teams.index')->with('success', 'Équipe supprimée');
     }
 
-    /**
-     * Ajoute un membre à l'équipe.
-     */
-    public function addMember(Request $request, string $teamId): RedirectResponse
+    public function addMember(Request $request, string $teamId, WebhookDispatcher $webhookDispatcher, SlackNotifier $slackNotifier): RedirectResponse
     {
+        // Vérifier que l'utilisateur est propriétaire de l'équipe
         $team = Auth::user()->teams()->findOrFail($teamId);
+        abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut ajouter des membres');
 
         $validated = $request->validate([
             'email' => 'required|email|exists:users,email',
+            'role' => 'nullable|in:' . implode(',', RolePermission::roles()),
         ]);
 
-        $user = User::where('email', $validated['email'])->first();
+        $user = User::where('email', $validated['email'])->firstOrFail();
+
+        // Empêcher d'ajouter le propriétaire comme membre
+        if ($team->user_id === $user->id) {
+            return redirect()->route('teams.show', $teamId)->with('error', 'Le propriétaire de l\'équipe est déjà membre');
+        }
 
         if ($team->members()->where('user_id', $user->id)->exists()) {
             return redirect()->route('teams.show', $teamId)->with('error', 'Cet utilisateur est déjà membre');
         }
 
         TeamMember::create([
-            'team_id' => $teamId,
+            'team_id' => $team->id,
             'user_id' => $user->id,
-            'role' => 'member',
+            'role' => $validated['role'] ?? RolePermission::COMMENTER,
         ]);
 
         NotificationHelper::createNotification(
@@ -125,41 +130,65 @@ class TeamController extends Controller
             'member_invited',
             "Invitation d'équipe",
             "Vous avez été ajouté à une équipe",
-            route('teams.show', $teamId)
+            route('teams.show', $team->id)
         );
 
-        return redirect()->route('teams.show', $teamId)->with('success', 'Membre ajouté');
+        $slackNotifier->notifyMemberAdded($team, $user);
+
+        $webhookDispatcher->dispatch('team.member.added', [
+            'team_id' => $team->id,
+            'team_name' => $team->name,
+            'user_id' => $user->id,
+            'email' => $user->email,
+        ], Auth::id(), false);
+
+        return redirect()->route('teams.show', $team->id)->with('success', 'Membre ajouté');
     }
 
-    /**
-     * Retire un membre de l'équipe.
-     */
     public function removeMember(string $teamId, string $userId): RedirectResponse
     {
+        // Vérifier que l'utilisateur est propriétaire de l'équipe
         $team = Auth::user()->teams()->findOrFail($teamId);
+        abort_if($team->user_id !== Auth::id(), 403, 'Seul le propriétaire peut retirer des membres');
 
-        TeamMember::where('team_id', $teamId)
+        // Valider que userId est un entier valide
+        abort_unless(is_numeric($userId) && $userId > 0, 400, 'ID utilisateur invalide');
+
+        // Empêcher la suppression du propriétaire
+        abort_if($team->user_id == $userId, 403, 'Le propriétaire de l\'équipe ne peut pas être retiré');
+
+        $member = TeamMember::where('team_id', $team->id)
             ->where('user_id', $userId)
-            ->delete();
+            ->firstOrFail();
 
-        return redirect()->route('teams.show', $teamId)->with('success', 'Membre retiré');
+        $member->delete();
+
+        return redirect()->route('teams.show', $team->id)->with('success', 'Membre retiré');
     }
 
-    /**
-     * Helper pour récupérer l'équipe pour l'utilisateur.
-     */
     private function getTeamForUser(string $id): Team
     {
-        return $this->currentUser()->teams()->findOrFail($id);
+        // Valider que l'ID est un entier valide
+        abort_unless(is_numeric($id) && $id > 0, 400, 'ID équipe invalide');
+        
+        // Vérifier que l'utilisateur est membre de l'équipe (propriétaire ou membre)
+        $team = Team::findOrFail($id);
+        $user = $this->currentUser();
+        
+        // Vérifier si l'utilisateur est propriétaire ou membre
+        $isOwner = $team->user_id === $user->id;
+        $isMember = $team->members()->where('user_id', $user->id)->exists();
+        
+        abort_unless($isOwner || $isMember, 403, 'Vous n\'avez pas accès à cette équipe');
+        
+        return $team;
     }
 
-    /**
-     * Helper pour récupérer l'utilisateur connecté avec le bon type.
-     */
     private function currentUser(): \App\Models\User
     {
-        /** @var \App\Models\User $user */
         $user = Auth::user();
+        abort_unless($user, 401, 'Utilisateur non authentifié');
+        
         return $user;
     }
 }

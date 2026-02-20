@@ -9,28 +9,34 @@ class PlanSeeder extends Seeder
 {
     public function run(): void
     {
-        Plan::create([
+        Plan::updateOrCreate([
+            'name' => 'Free',
+        ], [
             'name' => 'Free',
             'price' => 0,
-            'stripe_price_id' => null,
+            'stripe_price_id' => 'prod_TzbSYqiJGyMe2Z',
             'features' => ['tasks', 'comments', 'kanban', 'basic'],
             'max_projects' => 3,
             'max_teams' => 1,
         ]);
 
-        Plan::create([
+        Plan::updateOrCreate([
+            'name' => 'Pro',
+        ], [
             'name' => 'Pro',
             'price' => 2900, // $29.00
-            'stripe_price_id' => 'price_pro_xxxxx', // À remplacer avec ID Stripe réel
+            'stripe_price_id' => 'prod_TzbZ1zs17Lx7G9', 
             'features' => ['all_features', 'export', 'notifications', 'api'],
             'max_projects' => null, // unlimited
             'max_teams' => 5,
         ]);
 
-        Plan::create([
+        Plan::updateOrCreate([
+            'name' => 'Enterprise',
+        ], [
             'name' => 'Enterprise',
             'price' => 9900, // $99.00
-            'stripe_price_id' => 'price_enterprise_xxxxx', // À remplacer
+            'stripe_price_id' => 'prod_TzbeXOwzIJfLQM', 
             'features' => ['all_features', 'webhooks', 'priority_support', 'sso'],
             'max_projects' => null, // unlimited
             'max_teams' => null, // unlimited

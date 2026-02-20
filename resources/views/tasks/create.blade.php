@@ -12,7 +12,6 @@
                 @csrf
                 
                 <div class="space-y-6">
-                    <!-- Title -->
                     <div class="space-y-2">
                         <label for="title" class="text-sm font-bold text-gray-700 ml-1">Titre de la tâche</label>
                         <x-text-input type="text" name="title" id="title" placeholder="Ex: Développer l'API d'authentification..." value="{{ old('title') }}" required autofocus />
@@ -22,7 +21,6 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <!-- Project Selection -->
                         <div class="space-y-2">
                             <label for="project_id" class="text-sm font-bold text-gray-700 ml-1">Projet</label>
                             <select name="project_id" id="project_id" class="w-full border-none bg-gray-100/50 focus:bg-white focus:ring-4 focus:ring-primary/10 rounded-2xl py-3 px-4 text-gray-900 text-sm transition-all shadow-inner appearance-none">
@@ -34,7 +32,6 @@
                             </select>
                         </div>
 
-                        <!-- Due Date -->
                         <div class="space-y-2">
                             <label for="due_date" class="text-sm font-bold text-gray-700 ml-1">Date d'échéance</label>
                             <x-text-input type="date" name="due_date" id="due_date" value="{{ old('due_date') }}" />

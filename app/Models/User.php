@@ -92,6 +92,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get Slack workspace integrations for the user.
+     */
+    public function slackWorkspaces(): HasMany
+    {
+        return $this->hasMany(SlackWorkspace::class);
+    }
+
+    /**
      * Get unread notifications.
      */
     public function unreadNotifications()
@@ -120,7 +128,30 @@ class User extends Authenticatable
      */
     public function getPlanFeatures(): array
     {
-        return $this->subscription?->plan?->features ?? [];
+        $plan = $this->subscription?->plan;
+        if (! $plan) {
+            return [];
+        }
+
+        $isUnlimitedPlan = $plan->max_projects === null && $plan->max_teams === null;
+
+        if ($isUnlimitedPlan) {
+            static $allPlanFeatures = null;
+
+            if ($allPlanFeatures === null) {
+                $allPlanFeatures = Plan::query()
+                    ->pluck('features')
+                    ->flatten()
+                    ->filter(fn ($feature) => $feature !== 'all_features')
+                    ->unique()
+                    ->values()
+                    ->all();
+            }
+
+            return $allPlanFeatures;
+        }
+
+        return $plan->features ?? [];
     }
 
     /**
@@ -154,5 +185,45 @@ class User extends Authenticatable
     public function forgetStatsCache(): void
     {
         Cache::forget('taskflow.stats.' . $this->id);
+    }
+
+    /**
+     * Get the API tokens for the user.
+     */
+    public function apiTokens(): HasMany
+    {
+        return $this->hasMany(\App\Models\ApiToken::class);
+    }
+
+    /**
+     * Get tasks currently assigned to this user.
+     */
+    public function assignedTasks(): HasMany
+    {
+        return $this->hasMany(Task::class, 'assigned_to');
+    }
+
+    /**
+     * Assignment logs created by this user.
+     */
+    public function taskAssignmentsMade(): HasMany
+    {
+        return $this->hasMany(TaskAssignmentLog::class, 'assigned_by');
+    }
+
+    /**
+     * Assignment logs where this user is the assignee.
+     */
+    public function taskAssignmentsReceived(): HasMany
+    {
+        return $this->hasMany(TaskAssignmentLog::class, 'assigned_to');
+    }
+
+    /**
+     * Activity entries performed by this user.
+     */
+    public function activityLogs(): HasMany
+    {
+        return $this->hasMany(ActivityLog::class);
     }
 }

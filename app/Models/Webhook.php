@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Webhook extends Model
 {
@@ -13,15 +15,28 @@ class Webhook extends Model
         'user_id',
         'url',
         'events',
-        'status',
+        'active',
+        'secret',
     ];
 
     protected $casts = [
         'events' => 'array',
+        'active' => 'boolean',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function logs(): HasMany
+    {
+        return $this->hasMany(WebhookLog::class);
+    }
+
+    /** For views that still use status (active/inactive). */
+    public function getStatusAttribute(): string
+    {
+        return $this->active ? 'active' : 'inactive';
     }
 }

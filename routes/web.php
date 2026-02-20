@@ -7,16 +7,17 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TeamController;
+use App\Http\Controllers\SlackController;
 use App\Http\Controllers\BillingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\ApiTokenController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\TeamInvitationController;
 use App\Http\Controllers\WebhookController;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
 
 // Routes publiques
 Route::get('/', function () {
@@ -25,17 +26,18 @@ Route::get('/', function () {
 
 Route::get('/pricing', [PaymentController::class , 'showPlans'])->name('pricing.index');
 Route::post('/webhook/stripe', [PaymentController::class , 'webhook'])->name('webhook.stripe');
+Route::post('/slack/commands', [SlackController::class, 'commands'])->name('slack.commands');
 
-// Invitations (Public/Protected logic handled in controller)
-Route::get('/invitations/{token}/accept', [InvitationController::class , 'acceptInvitation'])->name('invitations.accept');
-Route::get('/invitations/{token}/decline', [InvitationController::class , 'declineInvitation'])->name('invitations.decline');
+// Invitations (accept/decline - public links from email; logic in controller)
+Route::get('/invitations/{token}/accept', [TeamInvitationController::class, 'acceptInvitation'])->name('invitations.accept');
+Route::get('/invitations/{token}/decline', [TeamInvitationController::class, 'declineInvitation'])->name('invitations.decline');
 
 Route::get('/api/docs', function () {
     return view('api.docs');
 
 })->name('api.docs');
 
-Route::middleware('guest')->group(function () {
+Route::middleware(['guest', 'throttle.login'])->group(function () {
     Route::get('/register', [AuthController::class , 'register'])->name('register');
     Route::post('/register', [AuthController::class , 'storeRegister'])->name('register.store');
     Route::get('/login', [AuthController::class , 'login'])->name('login');
@@ -61,28 +63,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/notifications/read-all', [NotificationController::class , 'markAllAsRead'])->name('notifications.readAll');
 
     // Route de recherche globale
-    Route::get('/search', function (Request $request) {
-            $q = $request->input('q');
-            $projects = collect();
-            $tasks = collect();
-
-            if ($q) {
-                $userProjects = Auth::user()->projects()->where('title', 'like', "%$q%")->get();
-                $projects = $userProjects;
-
-                $allProjects = Auth::user()->projects()->with('tasks')->get();
-                foreach ($allProjects as $project) {
-                    foreach ($project->tasks as $task) {
-                        if (stripos($task->title, $q) !== false) {
-                            $tasks->push($task);
-                        }
-                    }
-                }
-            }
-
-            return view('search', compact('projects', 'tasks', 'q'));
-        }
-        )->name('search');
+    Route::get('/search', [SearchController::class, 'index'])->name('search');
+    Route::get('/api/users/search', [SearchController::class, 'searchUsers'])->name('api.users.search');
 
         // Routes pour les projets
         Route::get('/projects', [ProjectController::class , 'index'])->name('projects.index');
@@ -99,6 +81,9 @@ Route::middleware('auth')->group(function () {
         // Routes Export
         Route::get('/projects/{id}/export/pdf', [ExportController::class , 'exportProjectPDF'])->name('projects.export.pdf');
         Route::get('/projects/{id}/export/csv', [ExportController::class , 'exportTasksCSV'])->name('projects.export.csv');
+        Route::get('/projects/{project}/activity', [ProjectController::class, 'activity'])
+            ->middleware('can:view,project')
+            ->name('projects.activity');
 
         // Routes pour les tâches
         Route::get('/projects/{projectId}/tasks/create', [TaskController::class , 'create'])->name('tasks.create');
@@ -107,6 +92,15 @@ Route::middleware('auth')->group(function () {
         Route::put('/tasks/{id}', [TaskController::class , 'update'])->name('tasks.update');
         Route::get('/tasks/{id}', [TaskController::class , 'show'])->name('tasks.show');
         Route::delete('/tasks/{id}', [TaskController::class , 'destroy'])->name('tasks.destroy');
+        Route::patch('/tasks/{id}/assign/{userId}', [TaskController::class, 'assign'])
+            ->middleware('check.task.permission:assign')
+            ->name('tasks.assign');
+        Route::patch('/tasks/{id}/unassign', [TaskController::class, 'unassign'])
+            ->middleware('check.task.permission:assign')
+            ->name('tasks.unassign');
+        Route::get('/tasks/{task}/activity', [TaskController::class, 'activity'])
+            ->middleware('can:view,task')
+            ->name('tasks.activity');
         Route::get('/search/tasks', [TaskController::class , 'search'])->name('tasks.search');
 
         // Routes pour les commentaires
@@ -115,10 +109,15 @@ Route::middleware('auth')->group(function () {
 
         // Routes pour les équipes
         Route::post('/teams', [TeamController::class , 'store'])->middleware('check.team.limit')->name('teams.store');
+        Route::get('/teams/{team}/invitations', [TeamController::class, 'invitations'])->name('teams.invitations');
+        Route::delete('/teams/invitations/{invitation}', [TeamInvitationController::class, 'cancelInvitation'])->name('teams.invitations.cancel');
         Route::resource('teams', TeamController::class)->except(['store']);
         Route::post('/teams/{teamId}/members', [TeamController::class , 'addMember'])->name('teams.addMember');
+        // Backward-compatible fallback when a stale form submits POST without _method=DELETE
+        Route::post('/teams/{teamId}/members/{userId}', [TeamController::class , 'removeMember']);
         Route::delete('/teams/{teamId}/members/{userId}', [TeamController::class , 'removeMember'])->name('teams.removeMember');
         Route::post('/teams/{teamId}/invite-email', [InvitationController::class , 'sendEmailInvitation'])->name('teams.inviteEmail');
+        Route::post('/teams/{teamId}/send-invitation', [TeamInvitationController::class, 'sendInvitation'])->name('teams.sendInvitation');
 
         // API Tokens
         Route::get('/api/tokens', [ApiTokenController::class , 'index'])->name('api.tokens.index');
@@ -126,17 +125,28 @@ Route::middleware('auth')->group(function () {
         Route::delete('/api/tokens/{id}', [ApiTokenController::class , 'destroy'])->name('api.tokens.destroy');
 
         // Webhooks
-        Route::get('/webhooks', [WebhookController::class , 'index'])->name('webhooks.index');
-        Route::get('/webhooks/create', [WebhookController::class , 'create'])->name('webhooks.create');
-        Route::post('/webhooks', [WebhookController::class , 'store'])->name('webhooks.store');
-        Route::delete('/webhooks/{id}', [WebhookController::class , 'destroy'])->name('webhooks.destroy');
-        Route::post('/webhooks/{id}/test', [WebhookController::class , 'testWebhook'])->name('webhooks.test');
+        Route::get('/webhooks', [WebhookController::class, 'index'])->name('webhooks.index');
+        Route::get('/webhooks/create', [WebhookController::class, 'create'])->name('webhooks.create');
+        Route::post('/webhooks', [WebhookController::class, 'store'])->name('webhooks.store');
+        Route::get('/webhooks/{webhook}/edit', [WebhookController::class, 'edit'])->name('webhooks.edit');
+        Route::put('/webhooks/{webhook}', [WebhookController::class, 'update'])->name('webhooks.update');
+        Route::delete('/webhooks/{id}', [WebhookController::class, 'destroy'])->name('webhooks.destroy');
+        Route::post('/webhooks/{id}/toggle', [WebhookController::class, 'toggle'])->name('webhooks.toggle');
+        Route::post('/webhooks/{webhook}/test', [WebhookController::class, 'testWebhook'])->name('webhooks.test');
+        Route::get('/webhooks/{webhook}/logs', [WebhookController::class, 'showLogs'])->name('webhooks.logs');
+
+        // Slack Integrations
+        Route::get('/slack/integrations', [SlackController::class, 'index'])->name('slack.index');
+        Route::get('/slack/connect/{teamId}', [SlackController::class, 'connect'])->name('slack.connect');
+        Route::get('/slack/callback', [SlackController::class, 'callback'])->name('slack.callback');
+        Route::delete('/slack/{id}', [SlackController::class, 'disconnect'])->name('slack.disconnect');
+        Route::post('/slack/{id}/channel', [SlackController::class, 'selectChannel'])->name('slack.selectChannel');
+        Route::put('/slack/{id}/events', [SlackController::class, 'updateEvents'])->name('slack.updateEvents');
 
         // API JSON pour animations
         Route::prefix('api')->group(function () {
             Route::get('/stats', [ProjectController::class , 'getStats'])->name('api.stats');
             Route::get('/dashboard/analytics', [DashboardController::class , 'getAnalytics'])->name('api.dashboard.analytics');
-            Route::patch('/tasks/{id}/status', [TaskController::class , 'updateStatus'])->name('api.tasks.updateStatus');
         }
         );
     });

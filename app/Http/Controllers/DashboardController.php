@@ -11,22 +11,17 @@ use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
-    /**
-     * Affiche le tableau de bord.
-     */
     public function index(): View
     {
         $user = Auth::user();
         $projectIds = $user->projects()->pluck('id');
 
-        // 1. Stats de base
         $stats = [
             'projects' => $user->projects()->count(),
             'tasks' => Task::whereIn('project_id', $projectIds)->count(),
             'teams' => $user->teams()->count(),
         ];
         
-        // 2. Activité récente
         $recentProjects = $user->projects()->orderBy('created_at', 'desc')->limit(5)->get();
         
         $recentTasks = Task::whereIn('project_id', $projectIds)
@@ -36,25 +31,21 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        // 3. Analytics pour la vue
         $totalTasks = $stats['tasks'];
         $completedTasks = Task::whereIn('project_id', $projectIds)->where('status', 'done')->count();
         $taskCompletionRate = $totalTasks > 0 ? round(($completedTasks / $totalTasks) * 100) : 0;
 
-        // Projets par statut
         $projectsByStatus = $user->projects()
             ->select('status', DB::raw('count(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status')
             ->toArray();
 
-        // Données d'activité (7 derniers jours)
         $activityData = [];
         for ($i = 6; $i >= 0; $i--) {
             $date = Carbon::now()->subDays($i);
             $dayLabel = $date->format('D'); // Mon, Tue...
             
-            // Compte les tâches créées ou complétées ce jour-là
             $count = Task::whereIn('project_id', $projectIds)
                 ->whereDate('updated_at', $date)
                 ->count();
@@ -74,9 +65,6 @@ class DashboardController extends Controller
         ));
     }
 
-    /**
-     * API: Stats avancées pour les graphiques (si utilisé via AJAX).
-     */
     public function getAnalytics(): JsonResponse
     {
         $user = Auth::user();
